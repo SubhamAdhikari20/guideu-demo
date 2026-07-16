@@ -25,3 +25,5 @@ jobs:
         env:
           DJANGO_SETTINGS_MODULE: config.settings.dev
         run: uv run python manage.py check
+      - name: Run tests
+        run: uv run python -m pytest -q

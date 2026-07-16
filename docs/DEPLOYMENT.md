@@ -19,6 +19,8 @@ development uses `docker-compose.yml`; production uses `docker-compose.prod.yml`
 - Datastores are **not** published to the host — only Nginx is public (80/443).
 - Every service has `restart: always`.
 - Static and media are shared with Nginx through named volumes.
+- The Next.js admin is built as a standalone Node image and is available only
+  through the Nginx gateway.
 
 ## Deploy
 ```bash
@@ -45,8 +47,9 @@ Let's Encrypt / certbot) or behind a managed load balancer. The app already sets
 `SECURE_PROXY_SSL_HEADER`, so it trusts `X-Forwarded-Proto` from the proxy.
 
 ## Frontends
-- Web admin (Next.js): deploy separately (e.g. Vercel) or add a container; point
-  `CORE_API_BASE_URL` / `NEXT_PUBLIC_API_BASE_URL` at the gateway.
+- Web admin (Next.js): included in both Compose files. Server-side API URLs are
+  overridden to use the internal Compose service names, while Nginx serves the
+  dashboard at `/`.
 - Mobile (Flutter): build with `--dart-define GUIDEU_API_BASE_URL=...` and
   `--dart-define GUIDEU_REALTIME_URL=...` pointing at the gateway, then ship the
   APK / IPA.
