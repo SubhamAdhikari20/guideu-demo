@@ -76,7 +76,7 @@ guideu/
 ```bash
 cp .env.example .env
 ./scripts/setup.sh            # uv sync + npm install + flutter pub get
-docker compose up --build     # postgres, mongo, redis, services, mlflow, nginx
+docker compose up --build     # datastores, backend services, web admin, mlflow, nginx
 ```
 
 Or run services individually with the Makefile (`make help`).
@@ -97,13 +97,15 @@ Or run services individually with the Makefile (`make help`).
 | Sprint | Scope | Status |
 | --- | --- | --- |
 | **1** | Repository foundation: monorepo, service skeletons, infra, CI, docs | ✅ done |
-| 2 | Domain features: catalog, bookings, payments, reviews, notifications; ML pipeline; realtime handlers; frontends | ▶ next |
-| 3 | Hardening: permissions audit, Celery jobs, contract/load tests | ☐ |
-| 4 | Production readiness: observability, payment live-mode, fairness gate | ☐ |
-| 5 | Polish, demo, documentation, optional IoT | ☐ |
+| **2** | Mobile authentication, discovery, destinations and guides | ✅ done |
+| **3** | Tour packages, bookings, demo payment confirmation and reviews | ✅ done |
+| **4** | Recommendations, anti-scam, festivals, chat and admin dashboard | ✅ done |
+| **5** | Travel workspace, currency, SOS, hardening, deployment and thesis polish | ✅ done |
 
-Detailed plans live in [`docs/sprints/`](docs/sprints/). The full architecture,
-ADRs, dataset mapping, ML and ethics rationale are in [`docs/`](docs/).
+All five sprint branches are complete and merged into `main`. Detailed plans
+and delivery reviews live in [`docs/sprints/`](docs/sprints/). The full
+architecture, ADRs, dataset mapping, ML and ethics rationale are in
+[`docs/`](docs/).
 
 ## 🌿 Branching & commits
 

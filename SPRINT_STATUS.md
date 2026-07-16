@@ -19,8 +19,8 @@ layer returns `(Failure?, T?)` records (no Either). Riverpod for DI; list state
 exposed as `AsyncValue`. Dio client attaches JWT and does a one-shot refresh on 401.
 
 ## Branches
-`main` + `sprint-1`..`sprint-5`. Sprints 1–4 are merged into `main`. Sprint 5
-work lives on `sprint-5` (ready to merge). Local safety branch
+`main` + `sprint-1`..`sprint-5`. All five sprint branches are complete and
+merged into `main`. Local safety branch
 `backup/pre-sprint1-2026-06-29` is preserved.
 
 ## Sprint 1 — DONE (merged)
@@ -36,7 +36,7 @@ Marketplace transaction layer: tour packages + bookings, payments
 (eSewa/Khalti sheet → confirm), reviews/ratings shown on the guide profile.
 Bookings are package-centric.
 
-## Sprint 4 — DONE (on `sprint-4`)
+## Sprint 4 — DONE (merged)
 The AI + connectivity sprint. Verify-and-fill-gaps: reused the existing ML
 service, anti-scam tool, festival data and socket server; filled small backend
 gaps and built the app frontends.
@@ -51,7 +51,7 @@ gaps and built the app frontends.
   Reports) with server-side fetches so secrets stay server-side.
 - See `docs/sprints/sprint_4/` for the plan and review.
 
-## Sprint 5 — DONE (on `sprint-5`)
+## Sprint 5 — DONE (merged)
 Final sprint: features, polish, hardening, testing, deployment, docs.
 - **Backend:** `workspace` (trips + items, reorder, budget, AI suggestions),
   `currency` (rates + convert, Celery refresh), `safety` (SOS alerts).
@@ -67,8 +67,9 @@ Final sprint: features, polish, hardening, testing, deployment, docs.
 - See `docs/sprints/sprint_5/` for the plan and review.
 
 ## Verification
-`manage.py check` clean; `pytest` **21 passing**; `flutter analyze`/`test` clean;
-real-time-engine `tsc` build clean; web_admin `lint` + `build` clean.
+`manage.py check` clean; core-engine `pytest` **21 passing**; analytics-engine
+`pytest` **6 passing**; `flutter analyze`/`test` clean; Android debug APK build
+clean; real-time-engine `tsc`/lint clean; web_admin lint/build clean.
 
 ## Key API endpoints (core-engine, `/api/v1`)
 - `auth/token/`, `auth/token/refresh/`, `auth/register/`, `auth/users/me/`

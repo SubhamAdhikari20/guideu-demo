@@ -33,7 +33,8 @@ style — nothing from Sprints 1–4 was rebuilt.
 
 **Deployment & docs**
 - `docker-compose.prod.yml` (gunicorn, prod settings, restart policies,
-  internal-only datastores), `scripts/deploy.sh`, `docs/DEPLOYMENT.md`.
+  internal-only datastores and a containerized Next.js admin),
+  `scripts/deploy.sh`, `docs/DEPLOYMENT.md`.
 - `docs/THESIS_SUBMISSION_CHECKLIST.md`, `docs/DEMO_SCRIPT.md`.
 
 ## Honest scope (as set out in the plan)
@@ -44,9 +45,14 @@ style — nothing from Sprints 1–4 was rebuilt.
   and real hotel/flight/bus inventory APIs.
 
 ## Verification
-`manage.py check` clean; `pytest` 21 passed; `flutter analyze` clean;
-`flutter test` passing; web_admin `lint`/`build` clean (Sprint 4); realtime
-`tsc` build clean.
+`manage.py check` clean; core-engine `pytest` 21 passed; analytics-engine
+`pytest` 6 passed; `flutter analyze` clean; `flutter test` passing; Android
+debug APK build clean; web_admin `lint`/`build` clean; realtime `tsc`/lint clean.
+
+The final stabilization pass also made core-engine tests part of CI, repaired
+the production Nginx-to-admin upstream, aligned Android Gradle files with the
+Flutter 3.44 template, and synchronized the root sprint documentation with the
+delivered branch history.
 
 ## Project status
 All five sprints are complete. GuideU is a working AI-powered tourism platform:
