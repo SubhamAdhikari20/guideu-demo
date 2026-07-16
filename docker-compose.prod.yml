@@ -133,6 +133,19 @@ services:
     depends_on:
       - redis
 
+  web-admin:
+    build:
+      context: ./apps/web_admin
+    restart: always
+    environment:
+      CORE_API_BASE_URL: http://core-engine:8000/api/v1
+      ANALYTICS_ENGINE_URL: http://analytics-engine:8001
+      ANALYTICS_API_KEY: ${ANALYTICS_API_KEY}
+      ADMIN_API_TOKEN: ${ADMIN_API_TOKEN:-}
+    depends_on:
+      - core-engine
+      - analytics-engine
+
   nginx:
     image: nginx:1.27-alpine
     restart: always
@@ -148,6 +161,7 @@ services:
       - core-engine
       - analytics-engine
       - real-time-engine
+      - web-admin
 
 volumes:
   postgres_prod_data:
