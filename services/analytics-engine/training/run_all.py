@@ -1,6 +1,6 @@
 """Train every GuideU model and print a consolidated report.
 
-    python -m training.run_all --dataset-dir "../../Travel Planning"
+    python -m training.run_all --dataset-dir "../../../Travel Planning"
 """
 from __future__ import annotations
 

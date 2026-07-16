@@ -6,7 +6,7 @@ each row's ``external_id`` so re-running is safe (conflicts are ignored).
 
 Usage::
 
-    python manage.py seed_from_dataset --dataset-dir "../../Travel Planning"
+    python manage.py seed_from_dataset --dataset-dir "../../../Travel Planning"
     python manage.py seed_from_dataset --flush            # wipe catalog first
     python manage.py seed_from_dataset --with-demo-bookings
 
@@ -99,8 +99,8 @@ class Command(BaseCommand):
     def add_arguments(self, parser) -> None:
         parser.add_argument(
             "--dataset-dir",
-            default="../../Travel Planning",
-            help="Path to the Travel Planning dataset directory.",
+            default="",
+            help="Path to the Travel Planning dataset directory (auto-discovered when omitted).",
         )
         parser.add_argument("--flush", action="store_true", help="Delete existing catalog rows first.")
         parser.add_argument("--max-pricing", type=int, default=0, help="Cap pricing rows for fast dev seeds (0 = all).")

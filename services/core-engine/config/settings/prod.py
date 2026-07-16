@@ -4,12 +4,12 @@ from __future__ import annotations
 import os
 
 from .base import *  # noqa: F401,F403
-from .base import SECRET_KEY
+from .base import INSECURE_DEV_SECRET_KEY, SECRET_KEY
 
 DEBUG = False
 
 # Fail fast rather than booting insecurely.
-if SECRET_KEY == "insecure-dev-key-change-in-prod":
+if SECRET_KEY == INSECURE_DEV_SECRET_KEY:
     raise RuntimeError("DJANGO_SECRET_KEY must be set in production.")
 
 if os.environ.get("DJANGO_DB_ENGINE", "").endswith("sqlite3"):
