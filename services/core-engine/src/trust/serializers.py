@@ -46,6 +46,10 @@ class PriceCheckResultSerializer(serializers.Serializer):
     scam_probability = serializers.FloatField(allow_null=True)
     source = serializers.CharField()
     explanation = serializers.ListField(child=serializers.CharField())
+    # Fair-wage protection for guides and porters (see services.check_price).
+    below_fair_wage = serializers.BooleanField(default=False)
+    below_fair_range = serializers.BooleanField(default=False)
+    fair_wage_message = serializers.CharField(allow_null=True, required=False)
 
 
 class PriceCheckLogSerializer(serializers.ModelSerializer):

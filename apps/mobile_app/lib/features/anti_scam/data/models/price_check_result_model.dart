@@ -20,6 +20,9 @@ class PriceCheckResultModel {
       scamProbability: _toDoubleOrNull(_json['scam_probability']),
       source: (_json['source'] ?? '') as String,
       explanation: _stringList(_json['explanation']),
+      belowFairWage: (_json['below_fair_wage'] ?? false) as bool,
+      belowFairRange: (_json['below_fair_range'] ?? false) as bool,
+      fairWageMessage: _json['fair_wage_message'] as String?,
     );
   }
 

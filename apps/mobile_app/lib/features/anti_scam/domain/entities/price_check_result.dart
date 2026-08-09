@@ -13,6 +13,9 @@ class PriceCheckResult {
     required this.scamProbability,
     required this.source,
     required this.explanation,
+    this.belowFairWage = false,
+    this.belowFairRange = false,
+    this.fairWageMessage,
   });
 
   final String serviceType;
@@ -26,6 +29,13 @@ class PriceCheckResult {
   final double? scamProbability;
   final String source; // "ml" | "benchmark" | ...
   final List<String> explanation;
+
+  /// Fair-wage protection. A quote can be unfairly *low*: for guides and porters
+  /// the bottom of the published range is somebody's daily wage, so the app
+  /// warns about under-quoting instead of presenting it as a good deal.
+  final bool belowFairWage;
+  final bool belowFairRange;
+  final String? fairWageMessage;
 
   /// How far above (or below) the fair price, e.g. "+45%". Null when unknown.
   String? get deviationLabel {
