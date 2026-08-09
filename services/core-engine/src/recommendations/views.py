@@ -20,6 +20,7 @@ from src.catalog.serializers import GuideRegistrySerializer, TrekkingRouteSerial
 from src.common.services import get_analytics_client
 
 from .serializers import (
+    ArrivalsForecastQuerySerializer,
     GuideRecommendationQuerySerializer,
     RouteRecommendationQuerySerializer,
 )
@@ -57,6 +58,8 @@ class RouteRecommendationsView(APIView):
                 data = TrekkingRouteSerializer(route).data
                 data["score"] = item["score"]
                 data["components"] = item.get("components", {})
+                # "Why am I seeing this?" — carried through from the ranker.
+                data["why"] = item.get("why", [])
                 results.append(data)
             if results:
                 return Response(
@@ -91,6 +94,9 @@ class GuideRecommendationsView(APIView):
                 "average_rating": float(g.average_rating or 0),
                 "regions_covered": g.regions_covered,
                 "languages_spoken": g.languages_spoken,
+                "years_experience": float(g.years_experience or 0),
+                "total_trips_completed": int(g.total_trips_completed or 0),
+                "verification_status": g.verification_status,
             }
             for g in shortlist
         ]
@@ -117,3 +123,29 @@ class GuideRecommendationsView(APIView):
         return Response(
             {"source": "fallback", "model_version": "", "results": GuideRegistrySerializer(shortlist[:top_k], many=True).data}
         )
+
+
+class ArrivalsForecastView(APIView):
+    """``GET /api/v1/recommendations/forecast/`` — projected monthly tourist arrivals.
+
+    Serves two audiences from one model: admins planning guide capacity for a
+    season, and tourists who want to know whether the month they picked is a busy
+    one. The response keeps the model's own error band, because a single point
+    estimate from three years of post-COVID data would imply more precision than
+    the forecaster has.
+    """
+
+    permission_classes = (IsAuthenticated,)
+
+    @extend_schema(parameters=[ArrivalsForecastQuerySerializer])
+    def get(self, request, *args, **kwargs):
+        query = ArrivalsForecastQuerySerializer(data=request.query_params)
+        query.is_valid(raise_exception=True)
+
+        forecast = get_analytics_client().forecast_arrivals(
+            year=query.validated_data.get("year"),
+            region=query.validated_data.get("region") or None,
+        )
+        if not forecast or not forecast.get("items"):
+            return Response({"source": "unavailable", "items": []})
+        return Response({"source": "ml", **forecast})

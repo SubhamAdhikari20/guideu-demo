@@ -13,11 +13,19 @@ class RecommendationRemoteDataSource {
 
   final Dio _dio;
 
-  Future<List<DestinationModel>> getRecommendedRoutes() async {
+  /// Returns each route with the ranker's `why` lines still attached.
+  Future<List<({DestinationModel route, List<String> why, double? score})>>
+      getRecommendedRoutes() async {
     final resp = await _dio.get(ApiEndpoints.recommendRoutes);
-    return _results(resp.data)
-        .map((e) => DestinationModel.fromJson(e as Map<String, dynamic>))
-        .toList();
+    return _results(resp.data).map((e) {
+      final json = e as Map<String, dynamic>;
+      final why = json['why'];
+      return (
+        route: DestinationModel.fromJson(json),
+        why: why is List ? why.map((w) => w.toString()).toList() : <String>[],
+        score: (json['score'] as num?)?.toDouble(),
+      );
+    }).toList();
   }
 
   Future<List<GuideModel>> getRecommendedGuides() async {

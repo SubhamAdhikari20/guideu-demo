@@ -55,6 +55,16 @@ class AnalyticsEngineClient:
     def rank_guides(self, *, tourist: dict[str, Any], candidates: list[dict[str, Any]]) -> dict[str, Any] | None:
         return self._post("/api/v1/guides/rank", {"tourist": tourist, "candidates": candidates})
 
+    def assign_segment(self, *, tourist: dict[str, Any]) -> dict[str, Any] | None:
+        """Cold-start segment for a tourist with no interaction history."""
+        return self._post("/api/v1/segments/assign", tourist)
+
+    def forecast_arrivals(
+        self, *, year: int | None = None, months: list[int] | None = None, region: str | None = None
+    ) -> dict[str, Any] | None:
+        """Projected monthly arrivals, used for capacity planning and busy-month hints."""
+        return self._post("/api/v1/forecast/arrivals", {"year": year, "months": months, "region": region})
+
 
 def get_analytics_client() -> AnalyticsEngineClient:
     return AnalyticsEngineClient()

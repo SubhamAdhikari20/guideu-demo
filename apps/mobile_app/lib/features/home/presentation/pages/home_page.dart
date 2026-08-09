@@ -12,6 +12,7 @@ import '../../../destinations/presentation/widgets/destination_detail_sheet.dart
 import '../../../guides/domain/entities/guide.dart';
 import '../../../guides/presentation/providers/guide_providers.dart';
 import '../../../guides/presentation/widgets/guide_profile_sheet.dart';
+import '../../../recommendations/domain/entities/recommended_route.dart';
 import '../../../recommendations/presentation/providers/recommendation_providers.dart';
 import '../../../workspace/presentation/pages/workspaces_list_page.dart';
 
@@ -460,7 +461,7 @@ class _RecommendedRoutes extends StatelessWidget {
     this.onSeeAll,
   });
 
-  final AsyncValue<List<Destination>> recommended;
+  final AsyncValue<List<RecommendedRoute>> recommended;
   final void Function(Destination route) onTap;
   final VoidCallback? onSeeAll;
 
@@ -483,7 +484,8 @@ class _RecommendedRoutes extends StatelessWidget {
         ),
         const SizedBox(height: 4),
         SizedBox(
-          height: 150,
+          // Taller than the other strips — these cards also carry the "why" line.
+          height: 186,
           child: recommended.when(
             loading: () => const Center(child: CircularProgressIndicator()),
             error: (_, _) => const Center(
@@ -507,8 +509,8 @@ class _RecommendedRoutes extends StatelessWidget {
                 itemCount: preview.length,
                 separatorBuilder: (_, _) => const SizedBox(width: 12),
                 itemBuilder: (context, i) => _RecommendedRouteCard(
-                  route: preview[i],
-                  onTap: () => onTap(preview[i]),
+                  recommendation: preview[i],
+                  onTap: () => onTap(preview[i].destination),
                 ),
               );
             },
@@ -520,13 +522,14 @@ class _RecommendedRoutes extends StatelessWidget {
 }
 
 class _RecommendedRouteCard extends StatelessWidget {
-  const _RecommendedRouteCard({required this.route, required this.onTap});
+  const _RecommendedRouteCard({required this.recommendation, required this.onTap});
 
-  final Destination route;
+  final RecommendedRoute recommendation;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
+    final route = recommendation.destination;
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -598,6 +601,30 @@ class _RecommendedRouteCard extends StatelessWidget {
                       ),
                     ],
                   ),
+                  // "Why am I seeing this?" — the ranker's own top reason, so the
+                  // ordering is answerable rather than just asserted.
+                  if (recommendation.topReason != null) ...[
+                    const SizedBox(height: 6),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Icon(Icons.info_outline,
+                            size: 11, color: AppColors.textSecondary),
+                        const SizedBox(width: 3),
+                        Expanded(
+                          child: Text(
+                            recommendation.topReason!,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              fontSize: 10.5,
+                              color: AppColors.textSecondary,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
                 ],
               ),
             ),
