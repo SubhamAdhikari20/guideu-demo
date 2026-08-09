@@ -52,7 +52,7 @@ ml: ## Run the FastAPI analytics-engine
 
 .PHONY: train
 train: ## Train all ML models on the synthetic dataset
-	cd $(ANALYTICS) && uv run python -m training.run_all --dataset-dir "../../Travel Planning"
+	cd $(ANALYTICS) && uv run python -m training.run_all --dataset-dir "../../../Travel Planning"
 
 # ---- real-time-engine ------------------------------------------------------
 .PHONY: realtime

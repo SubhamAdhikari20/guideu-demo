@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../app/theme/app_colors.dart';
 import '../../../../core/error/failures.dart';
+import '../../../../core/widgets/empty_state.dart';
+import '../../../../core/widgets/error_retry.dart';
 import '../providers/guide_providers.dart';
 import '../widgets/guide_card.dart';
 import '../widgets/guide_profile_sheet.dart';
@@ -65,20 +67,22 @@ class _GuidesPageState extends ConsumerState<GuidesPage> {
                 padding: EdgeInsets.only(top: 60),
                 child: Center(child: CircularProgressIndicator()),
               ),
-              error: (error, _) => _ErrorState(
-                message:
-                    error is Failure ? error.message : 'Something went wrong.',
-                onRetry: () => ref.invalidate(guidesProvider(_query)),
+              error: (error, _) => Padding(
+                padding: const EdgeInsets.only(top: 40),
+                child: ErrorRetry(
+                  message:
+                      error is Failure ? error.message : 'Something went wrong.',
+                  onRetry: () => ref.invalidate(guidesProvider(_query)),
+                ),
               ),
               data: (items) {
                 if (items.isEmpty) {
                   return const Padding(
-                    padding: EdgeInsets.only(top: 60),
-                    child: Center(
-                      child: Text(
-                        'No guides found.',
-                        style: TextStyle(color: AppColors.textSecondary),
-                      ),
+                    padding: EdgeInsets.only(top: 40),
+                    child: EmptyState(
+                      icon: Icons.hiking_outlined,
+                      title: 'No guides found',
+                      message: 'Try a different area or clear your search.',
                     ),
                   );
                 }
@@ -93,31 +97,6 @@ class _GuidesPageState extends ConsumerState<GuidesPage> {
                 );
               },
             ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _ErrorState extends StatelessWidget {
-  const _ErrorState({required this.message, required this.onRetry});
-
-  final String message;
-  final VoidCallback onRetry;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(top: 60),
-      child: Center(
-        child: Column(
-          children: [
-            const Icon(Icons.cloud_off, size: 40, color: AppColors.textSecondary),
-            const SizedBox(height: 12),
-            Text(message, textAlign: TextAlign.center),
-            const SizedBox(height: 12),
-            OutlinedButton(onPressed: onRetry, child: const Text('Retry')),
           ],
         ),
       ),

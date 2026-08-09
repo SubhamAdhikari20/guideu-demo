@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../app/theme/app_colors.dart';
 import '../../../destinations/presentation/pages/explore_page.dart';
+import '../../../festivals/presentation/pages/festival_hub_page.dart';
 import '../../../guides/presentation/pages/guides_page.dart';
 import '../../../profile/presentation/pages/profile_page.dart';
 import 'home_page.dart';
@@ -29,6 +30,7 @@ class _MainShellPageState extends State<MainShellPage> {
       ),
       ExplorePage(onFindGuide: () => _goTo(2)),
       const GuidesPage(),
+      const FestivalHubPage(),
       const ProfilePage(),
     ];
 
@@ -53,6 +55,11 @@ class _MainShellPageState extends State<MainShellPage> {
             icon: Icon(Icons.hiking_outlined),
             selectedIcon: Icon(Icons.hiking, color: AppColors.primary),
             label: 'Guides',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.celebration_outlined),
+            selectedIcon: Icon(Icons.celebration, color: AppColors.primary),
+            label: 'Festivals',
           ),
           NavigationDestination(
             icon: Icon(Icons.person_outline),

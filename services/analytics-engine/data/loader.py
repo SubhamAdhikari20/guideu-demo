@@ -69,9 +69,22 @@ def load_bookings() -> pd.DataFrame:
     return _read("bookings.csv", parse_dates=["booking_date", "travel_start_date", "travel_end_date"])
 
 
+@lru_cache(maxsize=1)
+def load_arrivals() -> pd.DataFrame:
+    """Cohort-level arrivals — the input to demand forecasting."""
+    return _read("tourist_arrivals.csv")
+
+
+@lru_cache(maxsize=1)
+def load_gamification() -> pd.DataFrame:
+    """Badge/points log, used for the badge-affinity view of a segment."""
+    return _read("gamification_log.csv", parse_dates=["earned_date"])
+
+
 def clear_cache() -> None:
     for fn in (
         load_routes, load_guides, load_tourists, load_events, load_pricing,
-        load_scam_reports, load_interactions, load_bookings,
+        load_scam_reports, load_interactions, load_bookings, load_arrivals,
+        load_gamification,
     ):
         fn.cache_clear()

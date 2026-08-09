@@ -15,6 +15,12 @@ class ScamScoreResponse(BaseModel):
     is_likely_scam: bool
     severity: str | None
     benchmark_price_npr: int | None
+    min_fair_npr: int | None = None
+    max_fair_npr: int | None = None
     overcharge_ratio: float | None
+    # Fair-wage protection: a quote can be unfairly low as well as unfairly high.
+    below_fair_wage: bool = False
+    below_fair_range: bool = False
+    fair_wage_message: str | None = None
     model_version: str
     explanation: list[str]

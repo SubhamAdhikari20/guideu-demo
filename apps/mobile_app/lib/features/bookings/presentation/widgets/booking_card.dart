@@ -12,6 +12,7 @@ class BookingCard extends StatelessWidget {
     this.onPay,
     this.onCancel,
     this.onReview,
+    this.onMessage,
     super.key,
   });
 
@@ -19,6 +20,7 @@ class BookingCard extends StatelessWidget {
   final VoidCallback? onPay;
   final VoidCallback? onCancel;
   final VoidCallback? onReview;
+  final VoidCallback? onMessage;
 
   @override
   Widget build(BuildContext context) {
@@ -84,11 +86,20 @@ class BookingCard extends StatelessWidget {
                 ),
               ],
             ),
-            if (onPay != null || onCancel != null || onReview != null) ...[
+            if (onPay != null ||
+                onCancel != null ||
+                onReview != null ||
+                onMessage != null) ...[
               const SizedBox(height: 10),
               Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
+                  if (onMessage != null)
+                    TextButton.icon(
+                      onPressed: onMessage,
+                      icon: const Icon(Icons.chat_bubble_outline, size: 18),
+                      label: const Text('Message'),
+                    ),
                   if (onCancel != null)
                     TextButton(
                       onPressed: onCancel,

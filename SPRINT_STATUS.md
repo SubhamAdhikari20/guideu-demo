@@ -1,4 +1,4 @@
-# GuideU — Sprint Status (through Sprint 3)
+# GuideU — Sprint Status (through Sprint 5 — complete)
 
 GuideU is an AI-powered tourism platform for Nepal (BSc thesis + startup).
 GitHub: `SubhamAdhikari20/guideu`.
@@ -6,76 +6,88 @@ GitHub: `SubhamAdhikari20/guideu`.
 ## Architecture
 Polyglot microservices monorepo (kebab-case service dirs):
 - `services/core-engine` — Django + DRF + Celery + SimpleJWT (`config/` + `src/<app>`)
-- `services/analytics-engine` — FastAPI ML
+- `services/analytics-engine` — FastAPI ML (scam, recommendations, pricing, registry)
 - `services/real-time-engine` — Node + TypeScript + Socket.IO
 - `apps/mobile_app` — Flutter + Riverpod (clean architecture from `leelame`)
-- `apps/web_admin` — Next.js (still scaffold)
+- `apps/web_admin` — Next.js 16 (admin dashboard)
 - `shared/ infra/ data/ scripts/ docs/` (docker-compose + nginx + mlflow)
 
 Databases: PostgreSQL, MongoDB, Redis.
 
 Mobile clean architecture: `features/<f>/{data,domain,presentation}`. The data
 layer returns `(Failure?, T?)` records (no Either). Riverpod for DI; list state
-exposed as `AsyncValue` via `FutureProvider.family` keyed by search string
-(Riverpod 3 — `StateProvider` is legacy). Dio client attaches JWT and does a
-one-shot refresh on 401.
+exposed as `AsyncValue`. Dio client attaches JWT and does a one-shot refresh on 401.
 
 ## Branches
-`main` + `sprint-1`..`sprint-5`. Sprints 1, 2, and 3 are all MERGED into `main`
-and pushed (`--no-ff` release merge commits). `main` tree == `sprint-3` tip.
-Local safety branch `backup/pre-sprint1-2026-06-29` is preserved (do not push or
-delete without asking). sprint-4/5 are still stubs.
+`main` + `sprint-1`..`sprint-5`. All five sprint branches are complete and
+merged into `main`. Local safety branch
+`backup/pre-sprint1-2026-06-29` is preserved.
 
 ## Sprint 1 — DONE (merged)
 Repository foundation: monorepo layout, service skeletons, infra
 (docker-compose + nginx + mlflow), per-service CI, docs.
 
 ## Sprint 2 — DONE (merged)
-Mobile frontend wired to the existing backend.
-- Backend: email login (`EmailTokenObtainPairSerializer`), auth URL cleanup.
-- Mobile: **auth** (splash/login/signup/forgot, JWT, secure storage),
-  theme + logo, **destinations** (Explore + detail sheet, `/catalog/routes/`),
-  **guides** (list + profile sheet, `/catalog/guides-registry/`), **home** +
-  bottom-nav shell (Home/Explore/Guides/Profile) + Profile tab with logout.
-  Flutter packages upgraded (Riverpod 3, go_router 17, secure_storage 10).
-- Carried over (deferred): web_admin guide-verification + user-management
-  dashboards, ML ingestion endpoint.
+Mobile frontend wired to the existing backend: auth (JWT, secure storage),
+destinations (Explore), guides (list + profile), home + bottom-nav shell.
 
 ## Sprint 3 — DONE (merged)
-Marketplace transaction layer.
-- Backend gap-fills only (no rebuild, no migrations):
-  - Scoped `BookingSession` & `PaymentTransaction` lists to `request.user` and
-    inject the owner server-side (clients can't spoof it).
-  - Added `tour_package_title` to booking output.
-  - Added a payment `confirm` action (simulated gateway success → booking
-    flips to CONFIRMED). Real eSewa/Khalti/Stripe crypto + webhooks + Celery
-    left out of scope.
-- Mobile:
-  - **bookings** — browse `TourPackage` (`/bookings/packages/`), create booking
-    (`/bookings/bookings/`), My Bookings + cancel.
-  - **payments** — eSewa/Khalti sheet → confirm.
-  - **reviews** — rate/review guides (`/reviews/reviews/` + summary), shown in
-    the guide profile.
-- Notes: bookings are PACKAGE-centric (no guide-direct booking); the guide
-  profile "Book" points to packages. Reviews start PENDING until admin
-  moderation.
+Marketplace transaction layer: tour packages + bookings, payments
+(eSewa/Khalti sheet → confirm), reviews/ratings shown on the guide profile.
+Bookings are package-centric.
+
+## Sprint 4 — DONE (merged)
+The AI + connectivity sprint. Verify-and-fill-gaps: reused the existing ML
+service, anti-scam tool, festival data and socket server; filled small backend
+gaps and built the app frontends.
+- **Backend gaps:** `recommendations` app (route + guide feed proxying the
+  analytics-engine with DB enrichment + fallback); `chat` app (Postgres thread +
+  message history, participant-scoped) with the real-time-engine persisting each
+  delivered message; `catalog/events/upcoming/` festival calendar grouping.
+- **Mobile:** "Recommended for you" on Home, anti-scam "Is this price fair?"
+  screen + overcharge reporting, a Festivals tab (calendar/info hub), and live
+  guide ↔ tourist chat (Socket.IO + REST history, opened from a booking).
+- **Web admin:** first real dashboard (Overview, ML Models, Festivals, Scam
+  Reports) with server-side fetches so secrets stay server-side.
+- See `docs/sprints/sprint_4/` for the plan and review.
+
+## Sprint 5 — DONE (merged)
+Final sprint: features, polish, hardening, testing, deployment, docs.
+- **Backend:** `workspace` (trips + items, reorder, budget, AI suggestions),
+  `currency` (rates + convert, Celery refresh), `safety` (SOS alerts).
+- **Mobile:** travel workspace screens (drag-and-drop itinerary + budget bar),
+  currency converter + reusable price display, Emergency SOS, shared
+  empty/error state widgets.
+- **Hardening:** login/register rate limits, input sanitisation, Nginx security
+  headers (`docs/architecture/SECURITY.md`); caching + query optimisation
+  (`docs/performance/PERFORMANCE.md`).
+- **Testing:** end-to-end journey test + per-app tests (21 backend tests pass).
+- **Deploy/docs:** `docker-compose.prod.yml` + `scripts/deploy.sh` +
+  `docs/DEPLOYMENT.md`; `docs/THESIS_SUBMISSION_CHECKLIST.md`, `docs/DEMO_SCRIPT.md`.
+- See `docs/sprints/sprint_5/` for the plan and review.
 
 ## Verification
-`flutter analyze` — clean; `flutter test` — passing; `manage.py check` — clean
-(each Sprint 3 slice).
+`manage.py check` clean; core-engine `pytest` **21 passing**; analytics-engine
+`pytest` **6 passing**; `flutter analyze`/`test` clean; Android debug APK build
+clean; real-time-engine `tsc`/lint clean; web_admin lint/build clean.
 
 ## Key API endpoints (core-engine, `/api/v1`)
-- `auth/token/` (email + password), `auth/token/refresh/`, `auth/register/`,
-  `auth/users/me/`
-- `catalog/{routes,regions,guides-registry}/`
+- `auth/token/`, `auth/token/refresh/`, `auth/register/`, `auth/users/me/`
+- `catalog/{routes,regions,guides-registry,events,pricing-benchmarks}/`
+  (+ `events/upcoming/`, `pricing-benchmarks/lookup/`)
 - `bookings/{packages,bookings,itinerary-items}/`
 - `payments/{payments,escrow}/` + `payments/{id}/confirm/`
 - `reviews/reviews/` + `reviews/reviews/summary/`
+- `recommendations/{routes,guides}/`
+- `chat/{threads,messages}/`
+- `trust/price-check/` + `trust/scam-reports/`
+- `workspace/{trips,items}/` (+ `trips/{id}/{ai-suggestions,apply-suggestions,budget-summary}/`)
+- `currency/{rates,convert}/`
+- `safety/sos/` (+ `sos/{id}/resolve/`)
 
 Pagination: page-number `{count, next, previous, results}`, page_size 25.
-Datasources also tolerate bare lists.
 
-## Next
-Sprint 4 (ML / analytics-engine) — verify-and-fill-gaps style. Plus the
-carried-over web_admin dashboards + ML ingestion endpoint. Confirm with the
-user before starting.
+## Next (post-thesis / future work)
+Offline map tile pre-download (needs route lat/lng), on-device chat translation,
+real hotel/flight/bus inventory APIs, physical IoT SOS device, admin moderation
+write actions + guide-verification / user-management pages.

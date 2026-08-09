@@ -3,7 +3,7 @@
 # -----------------------------------------------------------------------------
 # Brings up the full polyglot stack: PostgreSQL, MongoDB, Redis, the Django
 # core-engine (+ Celery worker/beat), the FastAPI analytics-engine, and the
-# Node real-time-engine. Frontends in ./apps (Flutter, Next.js) run on the host.
+# Node real-time-engine and the Next.js web admin. Flutter runs on the host.
 #
 #   docker compose up --build
 #
@@ -156,6 +156,21 @@ services:
       redis:
         condition: service_healthy
 
+  # ---- Next.js web admin ---------------------------------------------------
+  web-admin:
+    build:
+      context: ./apps/web_admin
+    environment:
+      CORE_API_BASE_URL: http://core-engine:8000/api/v1
+      ANALYTICS_ENGINE_URL: http://analytics-engine:8001
+      ANALYTICS_API_KEY: ${ANALYTICS_API_KEY:-change-me-internal-service-token}
+      ADMIN_API_TOKEN: ${ADMIN_API_TOKEN:-}
+    ports:
+      - "3000:3000"
+    depends_on:
+      - core-engine
+      - analytics-engine
+
   # ---- MLflow tracking UI --------------------------------------------------
   mlflow:
     image: ghcr.io/mlflow/mlflow:v2.16.2
@@ -176,12 +191,11 @@ services:
       - ./infra/nginx/conf.d:/etc/nginx/conf.d:ro
     ports:
       - "${NGINX_HTTP_PORT:-80}:80"
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
     depends_on:
       - core-engine
       - analytics-engine
       - real-time-engine
+      - web-admin
 
 volumes:
   postgres_data:

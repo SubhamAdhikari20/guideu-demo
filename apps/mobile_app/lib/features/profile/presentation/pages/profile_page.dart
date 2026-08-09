@@ -5,6 +5,9 @@ import '../../../../app/theme/app_colors.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../../auth/presentation/providers/auth_state.dart';
 import '../../../bookings/presentation/pages/my_bookings_page.dart';
+import '../../../currency/presentation/pages/currency_converter_page.dart';
+import '../../../safety/presentation/widgets/sos_sheet.dart';
+import '../../../workspace/presentation/pages/workspaces_list_page.dart';
 
 /// Profile tab — shows the signed-in user and lets them log out.
 class ProfilePage extends ConsumerWidget {
@@ -64,9 +67,30 @@ class ProfilePage extends ConsumerWidget {
               MaterialPageRoute(builder: (_) => const MyBookingsPage()),
             ),
           ),
+          _Tile(
+            icon: Icons.map_outlined,
+            label: 'My Trips',
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => const WorkspacesListPage()),
+            ),
+          ),
+          _Tile(
+            icon: Icons.currency_exchange,
+            label: 'Currency Converter',
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => const CurrencyConverterPage()),
+            ),
+          ),
           const _Tile(icon: Icons.settings_outlined, label: 'Settings'),
           const _Tile(icon: Icons.lock_outline, label: 'Security'),
-          const SizedBox(height: 24),
+          const SizedBox(height: 16),
+          OutlinedButton.icon(
+            onPressed: () => showSosSheet(context),
+            icon: const Icon(Icons.sos, color: AppColors.error),
+            label: const Text('Emergency SOS', style: TextStyle(color: AppColors.error)),
+            style: OutlinedButton.styleFrom(side: const BorderSide(color: AppColors.error)),
+          ),
+          const SizedBox(height: 12),
           OutlinedButton.icon(
             onPressed: () => ref.read(authControllerProvider.notifier).logout(),
             icon: const Icon(Icons.logout, color: AppColors.error),

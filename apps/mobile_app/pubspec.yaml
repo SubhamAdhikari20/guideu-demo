@@ -39,6 +39,8 @@ dependencies:
   flutter_riverpod: ^3.3.2
   # Networking
   dio: ^5.7.0
+  # Real-time chat (Socket.IO client, matches the realtime-engine v4 server)
+  socket_io_client: ^3.1.2
   # Declarative routing
   go_router: ^17.3.0
   # Secure token storage

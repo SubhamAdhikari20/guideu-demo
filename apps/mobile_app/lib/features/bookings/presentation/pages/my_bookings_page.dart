@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../app/theme/app_colors.dart';
 import '../../../../core/error/failures.dart';
+import '../../../chat/presentation/pages/chat_room_page.dart';
 import '../../../payments/presentation/widgets/payment_sheet.dart';
 import '../../domain/entities/booking.dart';
 import '../providers/booking_providers.dart';
@@ -50,10 +51,22 @@ class MyBookingsPage extends ConsumerWidget {
                     onCancel: b.canCancel
                         ? () => _confirmCancel(context, ref, b)
                         : null,
+                    onMessage: () => _openChat(context, b),
                   ),
               ],
             );
           },
+        ),
+      ),
+    );
+  }
+
+  void _openChat(BuildContext context, Booking booking) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => ChatRoomPage(
+          room: 'booking:${booking.id}',
+          title: booking.tourPackageTitle,
         ),
       ),
     );

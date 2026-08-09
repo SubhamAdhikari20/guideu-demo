@@ -1,6 +1,7 @@
 import { Server, Socket } from 'socket.io';
 
 import { verifyToken } from './auth';
+import { persistMessage } from './chatHistory';
 import { logger } from './logger';
 import { rooms } from './redisBridge';
 import { AvailabilityPayload, ChatJoinPayload, ChatMessagePayload, AuthedUser } from './types';
@@ -16,6 +17,7 @@ function authMiddleware(socket: Socket, next: (err?: Error) => void): void {
   const user = verifyToken(token);
   if (!user) return next(new Error('unauthorized: invalid token'));
   socket.data.user = user;
+  socket.data.token = token; // kept so we can persist chat history as this user
   next();
 }
 
@@ -51,12 +53,15 @@ export function attachSocketHandlers(io: Server): void {
         socket.emit('error:message', { detail: 'Join the room before sending.' });
         return;
       }
+      const text = String(body).slice(0, 4000);
       io.to(room).emit('chat:message', {
         room,
         from: user.userId,
-        body: String(body).slice(0, 4000),
+        body: text,
         ts: new Date().toISOString(),
       });
+      // Store it for history (best-effort; never blocks live delivery).
+      void persistMessage(socket.data.token as string, room, text);
     });
 
     // --- Guide availability (live) ---
