@@ -36,6 +36,22 @@ export function mlGet<T>(path: string): Promise<T | null> {
   return getJson<T>(`${ML_API}${path}`, { 'X-API-Key': ML_KEY });
 }
 
+/** POST to an analytics-engine endpoint (the ML service takes its inputs in the body). */
+export async function mlPost<T>(path: string, body: unknown): Promise<T | null> {
+  try {
+    const res = await fetch(`${ML_API}${path}`, {
+      method: 'POST',
+      headers: { 'X-API-Key': ML_KEY, 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+      cache: 'no-store',
+    });
+    if (!res.ok) return null;
+    return (await res.json()) as T;
+  } catch {
+    return null;
+  }
+}
+
 /** Pull `results` out of a DRF page, or treat the body as a bare list. */
 export function asList<T>(data: unknown): T[] {
   if (data && typeof data === 'object' && Array.isArray((data as { results?: T[] }).results)) {

@@ -11,7 +11,7 @@ import logging
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api import guides, health, pricing, recommendations, scam
+from app.api import forecasting, guides, health, pricing, recommendations, scam, segments
 from app.config import get_settings
 
 logging.basicConfig(level=logging.INFO, format="%(levelname)s %(name)s %(message)s")
@@ -19,9 +19,12 @@ logging.basicConfig(level=logging.INFO, format="%(levelname)s %(name)s %(message
 DESCRIPTION = """
 GuideU's machine-learning service.
 
-* **/api/v1/scam/score** — explainable overcharge / scam probability
-* **/api/v1/recommendations/routes** — personalised, traceable route ranking
-* **/api/v1/guides/rank** — verified-guide ranking
+* **/api/v1/scam/score** — explainable overcharge / scam probability, including the
+  below-fair-wage flag that protects guides from under-quoting
+* **/api/v1/recommendations/routes** — personalised route ranking from the learned ranker
+* **/api/v1/guides/rank** — verified-guide ranking by predicted match quality
+* **/api/v1/segments/assign** — cold-start tourist segment
+* **/api/v1/forecast/arrivals** — projected monthly tourist arrivals
 * **/api/v1/pricing/benchmark** — fair-price transparency
 * **/api/v1/models** — model registry (versions, metrics, fairness)
 
@@ -48,6 +51,8 @@ def create_app() -> FastAPI:
     app.include_router(scam.router)
     app.include_router(recommendations.router)
     app.include_router(guides.router)
+    app.include_router(segments.router)
+    app.include_router(forecasting.router)
     app.include_router(pricing.router)
 
     @app.get("/", tags=["health"])

@@ -146,6 +146,31 @@ def test_guide_rank_demotes_expired_licence(client, api_headers):
     assert resp.json()["items"][0]["guide_id"] == "CURRENT"
 
 
+@pytest.mark.needs_dataset
+def test_segment_assignment(client, api_headers):
+    resp = client.post(
+        "/api/v1/segments/assign",
+        headers=api_headers,
+        json={"pref_adventure_score": 0.9, "pref_nature_score": 0.8, "price_sensitivity": 0.2},
+    )
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body["segment_id"] is not None
+    assert body["centroid"]
+
+
+@pytest.mark.needs_dataset
+def test_arrivals_forecast(client, api_headers):
+    resp = client.post("/api/v1/forecast/arrivals", headers=api_headers, json={"year": 2025})
+    assert resp.status_code == 200
+    body = resp.json()
+    assert len(body["items"]) == 12
+    first = body["items"][0]
+    assert first["lower_estimate"] <= first["predicted_arrivals"] <= first["upper_estimate"]
+    # Autumn is Nepal's peak trekking season and the model should reproduce that.
+    assert body["peak_month"] in (3, 4, 5, 9, 10, 11)
+
+
 def test_models_registry(client, api_headers):
     resp = client.get("/api/v1/models", headers=api_headers)
     assert resp.status_code == 200
