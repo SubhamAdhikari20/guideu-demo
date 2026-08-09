@@ -66,9 +66,33 @@ Final sprint: features, polish, hardening, testing, deployment, docs.
   `docs/DEPLOYMENT.md`; `docs/THESIS_SUBMISSION_CHECKLIST.md`, `docs/DEMO_SCRIPT.md`.
 - See `docs/sprints/sprint_5/` for the plan and review.
 
+## Data & ML phase (after sprint 5, distributed across the sprint branches)
+The thesis's core requirement is using the Travel Planning dataset to build and
+evaluate models. That work landed across all five sprint branches and is merged
+into `main`:
+
+- **sprint-1** — arrivals/gamification data loaders; ranking, regression and
+  forecast metrics in `evaluation/metrics.py`.
+- **sprint-2** — anti-scam classifier retrained with gradient boosting
+  (accuracy 0.991, F1 0.980, Brier 0.006, cold-cell F1 0.958); **below-fair-wage
+  flag** protecting guides and porters, enforced in both services.
+- **sprint-3** — `guide_ranker`: predicts the rating a specific tourist gives a
+  specific guide (RMSE 0.655 vs 0.688 for the mean; beats ranking by star rating).
+- **sprint-4** — `route_recommender` rebuilt as a **learned** pointwise ranker
+  (1.63× the popularity baseline on hit-rate@10, 1.38× as deployed with the
+  diversity cap); recommendations now return the reasons behind each suggestion.
+- **sprint-5** — `arrivals_forecaster` (MAPE 17.2% vs 38.6% seasonal naive) and
+  `tourist_segments` (reported honestly: silhouette 0.13, no natural clusters);
+  admin demand-forecast page; the research documentation.
+
+**Five models, all ten dataset tables used, twelve baselines reported.** See
+`docs/ml.md` (technical), `docs/MODELS_SIMPLE_OVERVIEW.md` (plain English) and
+`docs/RESEARCH_FINDINGS.md` (the thesis evidence base). Retrain everything with
+`python -m training.run_all --report artifacts/training_report.json`.
+
 ## Verification
-`manage.py check` clean; core-engine `pytest` **21 passing**; analytics-engine
-`pytest` **6 passing**; `flutter analyze`/`test` clean; Android debug APK build
+`manage.py check` clean; core-engine `pytest` **26 passing**; analytics-engine
+`pytest` **14 passing**; `flutter analyze`/`test` clean; Android debug APK build
 clean; real-time-engine `tsc`/lint clean; web_admin lint/build clean.
 
 ## Key API endpoints (core-engine, `/api/v1`)
@@ -78,7 +102,7 @@ clean; real-time-engine `tsc`/lint clean; web_admin lint/build clean.
 - `bookings/{packages,bookings,itinerary-items}/`
 - `payments/{payments,escrow}/` + `payments/{id}/confirm/`
 - `reviews/reviews/` + `reviews/reviews/summary/`
-- `recommendations/{routes,guides}/`
+- `recommendations/{routes,guides,forecast}/`
 - `chat/{threads,messages}/`
 - `trust/price-check/` + `trust/scam-reports/`
 - `workspace/{trips,items}/` (+ `trips/{id}/{ai-suggestions,apply-suggestions,budget-summary}/`)
