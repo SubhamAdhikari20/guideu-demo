@@ -16,4 +16,7 @@ class AppColors {
   static const Color border = Color(0xFFE3E0DE);
   static const Color error = Color(0xFFE2231A);
   static const Color success = Color(0xFF2E9E5B);
+  // Used where something needs attention but is not a failure — e.g. a quote
+  // that falls below the fair wage for a guide or porter.
+  static const Color warning = Color(0xFFB86E00);
 }

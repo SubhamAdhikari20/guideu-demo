@@ -227,7 +227,14 @@ class _ResultCardState extends ConsumerState<_ResultCard> {
   Widget build(BuildContext context) {
     final r = widget.result;
     final flagged = r.isLikelyScam;
-    final color = flagged ? AppColors.error : AppColors.success;
+    // Under-quoting a guide or porter is its own problem, so it gets its own
+    // headline rather than being reported as a fair price.
+    final underpaying = r.belowFairWage && !flagged;
+    final color = flagged
+        ? AppColors.error
+        : underpaying
+            ? AppColors.warning
+            : AppColors.success;
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -241,12 +248,22 @@ class _ResultCardState extends ConsumerState<_ResultCard> {
         children: [
           Row(
             children: [
-              Icon(flagged ? Icons.warning_amber_rounded : Icons.verified_user,
-                  color: color),
+              Icon(
+                flagged
+                    ? Icons.warning_amber_rounded
+                    : underpaying
+                        ? Icons.volunteer_activism_outlined
+                        : Icons.verified_user,
+                color: color,
+              ),
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  flagged ? 'This looks overpriced' : 'This price looks fair',
+                  flagged
+                      ? 'This looks overpriced'
+                      : underpaying
+                          ? 'This is below the fair wage'
+                          : 'This price looks fair',
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 16,
@@ -267,6 +284,31 @@ class _ResultCardState extends ConsumerState<_ResultCard> {
             _row('Fair price', 'Rs. ${r.benchmarkPriceNpr}'),
           if (r.severity != null && r.severity!.isNotEmpty)
             _row('Severity', r.severity!),
+          if (r.belowFairWage && r.fairWageMessage != null) ...[
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: AppColors.warning.withValues(alpha: 0.10),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Icon(Icons.handshake_outlined,
+                      size: 18, color: AppColors.warning),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      r.fairWageMessage!,
+                      style: const TextStyle(
+                          fontSize: 13, color: AppColors.textPrimary),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
           const SizedBox(height: 12),
           if (r.explanation.isNotEmpty) ...[
             const Text('Why', style: TextStyle(fontWeight: FontWeight.w600)),
