@@ -1,8 +1,8 @@
 import 'package:dio/dio.dart';
 
 import '../../../../core/error/failures.dart';
-import '../../../destinations/domain/entities/destination.dart';
 import '../../../guides/domain/entities/guide.dart';
+import '../../domain/entities/recommended_route.dart';
 import '../../domain/repositories/recommendation_repository.dart';
 import '../datasources/recommendation_remote_datasource.dart';
 
@@ -12,10 +12,17 @@ class RecommendationRepositoryImpl implements RecommendationRepository {
   final RecommendationRemoteDataSource _remote;
 
   @override
-  Future<(Failure?, List<Destination>?)> getRecommendedRoutes() async {
+  Future<(Failure?, List<RecommendedRoute>?)> getRecommendedRoutes() async {
     try {
-      final models = await _remote.getRecommendedRoutes();
-      return (null, models.map((m) => m.toEntity()).toList());
+      final rows = await _remote.getRecommendedRoutes();
+      final items = rows
+          .map((r) => RecommendedRoute(
+                destination: r.route.toEntity(),
+                why: r.why,
+                score: r.score,
+              ))
+          .toList();
+      return (null, items);
     } on DioException catch (e) {
       return (_mapError(e), null);
     } catch (e) {

@@ -33,6 +33,40 @@ def test_scam_score_flags_overcharge(client, api_headers):
     assert body["is_likely_scam"] is True
     assert body["overcharge_ratio"] > 1.25
     assert body["explanation"]
+    assert body["below_fair_wage"] is False
+
+
+@pytest.mark.needs_dataset
+def test_scam_score_flags_below_fair_wage(client, api_headers):
+    """A quote far *under* the fair floor for a labour service must be called out."""
+    bench = client.post(
+        "/api/v1/pricing/benchmark", headers=api_headers, json={"service_type": "Porter", "region": "Langtang"}
+    ).json()
+    resp = client.post(
+        "/api/v1/scam/score",
+        headers=api_headers,
+        json={"service_type": "Porter", "region": "Langtang", "quoted_price_npr": bench["min_fair_npr"] * 0.5},
+    )
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body["below_fair_range"] is True
+    assert body["below_fair_wage"] is True
+    assert "fair rate" in (body["fair_wage_message"] or "")
+
+
+@pytest.mark.needs_dataset
+def test_scam_score_ignores_fair_wage_for_non_labour(client, api_headers):
+    """A cheap permit is a cheap permit, not an underpaid worker."""
+    bench = client.post(
+        "/api/v1/pricing/benchmark", headers=api_headers, json={"service_type": "TIMS Permit"}
+    ).json()
+    resp = client.post(
+        "/api/v1/scam/score",
+        headers=api_headers,
+        json={"service_type": "TIMS Permit", "quoted_price_npr": bench["min_fair_npr"] * 0.5},
+    )
+    assert resp.status_code == 200
+    assert resp.json()["below_fair_wage"] is False
 
 
 @pytest.mark.needs_dataset
@@ -46,7 +80,35 @@ def test_recommend_routes(client, api_headers):
     body = resp.json()
     assert len(body["items"]) == 5
     # High adventure score should surface harder routes near the top.
-    assert body["items"][0]["components"]["adventure_fit"] >= 0.5
+    assert body["items"][0]["components"]["adventure_match"] >= 0.5
+    # Every recommendation carries its own explanation.
+    assert all(item["why"] for item in body["items"])
+
+
+@pytest.mark.needs_dataset
+def test_recommendations_are_distinct_treks(client, api_headers):
+    """The catalog stores each trek ~6 times; a top-k of duplicates is useless."""
+    resp = client.post(
+        "/api/v1/recommendations/routes",
+        headers=api_headers,
+        json={"tourist": {"pref_adventure_score": 0.7}, "top_k": 10},
+    )
+    names = [item["route_name"] for item in resp.json()["items"]]
+    assert len(set(names)) == len(names)
+
+
+@pytest.mark.needs_dataset
+def test_recommendations_respond_to_the_profile(client, api_headers):
+    """Two opposite profiles must not receive the same list."""
+    def top_names(adventure: float) -> list[str]:
+        resp = client.post(
+            "/api/v1/recommendations/routes",
+            headers=api_headers,
+            json={"tourist": {"pref_adventure_score": adventure}, "top_k": 5},
+        )
+        return [item["route_name"] for item in resp.json()["items"]]
+
+    assert top_names(0.05) != top_names(0.95)
 
 
 def test_guide_rank(client, api_headers):
@@ -64,3 +126,28 @@ def test_guide_rank(client, api_headers):
     assert resp.status_code == 200
     items = resp.json()["items"]
     assert items[0]["guide_id"] == "G1"  # IFMGA + region/language match ranks first
+
+
+def test_guide_rank_demotes_expired_licence(client, api_headers):
+    """An expired licence must not out-rank a current one on credentials alone."""
+    resp = client.post(
+        "/api/v1/guides/rank",
+        headers=api_headers,
+        json={
+            "tourist": {"region": "Everest/Khumbu", "language": "English"},
+            "candidates": [
+                {"guide_id": "EXPIRED", "certification": "IFMGA Mountain Guide", "average_rating": 5.0,
+                 "regions_covered": "Everest/Khumbu", "languages_spoken": "English", "verification_status": "Expired"},
+                {"guide_id": "CURRENT", "certification": "NATHM Trekking Guide", "average_rating": 4.4,
+                 "regions_covered": "Everest/Khumbu", "languages_spoken": "English", "verification_status": "Verified"},
+            ],
+        },
+    )
+    assert resp.json()["items"][0]["guide_id"] == "CURRENT"
+
+
+def test_models_registry(client, api_headers):
+    resp = client.get("/api/v1/models", headers=api_headers)
+    assert resp.status_code == 200
+    names = {card["name"] for card in resp.json()}
+    assert {"scam_classifier", "route_recommender"} <= names

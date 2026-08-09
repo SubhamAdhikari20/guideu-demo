@@ -1,10 +1,10 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../auth/presentation/providers/auth_providers.dart';
-import '../../../destinations/domain/entities/destination.dart';
 import '../../../guides/domain/entities/guide.dart';
 import '../../data/datasources/recommendation_remote_datasource.dart';
 import '../../data/repositories/recommendation_repository_impl.dart';
+import '../../domain/entities/recommended_route.dart';
 import '../../domain/repositories/recommendation_repository.dart';
 
 // ---- Dependency injection (clean architecture wiring) ----------------------
@@ -25,7 +25,7 @@ final recommendationRepositoryProvider = Provider<RecommendationRepository>(
 /// Personalised trek suggestions. Exposed as [AsyncValue] for free
 /// loading / error / data states on the Home screen.
 final recommendedRoutesProvider =
-    FutureProvider.autoDispose<List<Destination>>((ref) async {
+    FutureProvider.autoDispose<List<RecommendedRoute>>((ref) async {
   final (failure, data) =
       await ref.watch(recommendationRepositoryProvider).getRecommendedRoutes();
   if (failure != null) throw failure;
