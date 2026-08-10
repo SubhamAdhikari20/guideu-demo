@@ -44,8 +44,55 @@ def catalog(db):
     )
 
 
+@pytest.fixture
+def offline_ml(monkeypatch):
+    """Simulate an unreachable analytics-engine.
+
+    These tests used to rely on nothing listening on port 8001, which made them
+    pass or fail depending on whether the ML service happened to be running —
+    the guide test broke the moment it was. Patching the client makes the
+    fallback path the thing actually under test.
+    """
+    class _Offline:
+        def recommend_routes(self, **_kwargs):
+            return None
+
+        def rank_guides(self, **_kwargs):
+            return None
+
+        def forecast_arrivals(self, **_kwargs):
+            return None
+
+    monkeypatch.setattr("src.recommendations.views.get_analytics_client", lambda: _Offline())
+
+
+@pytest.fixture
+def online_ml(monkeypatch):
+    """A stub analytics-engine that ranks the second route/guide first."""
+    class _Online:
+        def recommend_routes(self, **_kwargs):
+            return {
+                "model_version": "test-ranker-1",
+                "items": [
+                    {"route_id": "RTE0002", "score": 0.9, "components": {}, "why": ["Because it is gentle."]},
+                    {"route_id": "RTE0001", "score": 0.4, "components": {}, "why": ["Because it is hard."]},
+                ],
+            }
+
+        def rank_guides(self, **_kwargs):
+            return {
+                "model_version": "test-guide-1",
+                "items": [
+                    {"guide_id": "GDE00002", "score": 0.9, "components": {}},
+                    {"guide_id": "GDE00001", "score": 0.3, "components": {}},
+                ],
+            }
+
+    monkeypatch.setattr("src.recommendations.views.get_analytics_client", lambda: _Online())
+
+
 @pytest.mark.django_db
-def test_route_feed_falls_back_to_top_routes_without_ml(client, catalog):
+def test_route_feed_falls_back_to_top_routes_without_ml(client, catalog, offline_ml):
     """With no ML service reachable the feed still returns ranked routes."""
     resp = client.get("/api/v1/recommendations/routes/")
     assert resp.status_code == 200
@@ -56,12 +103,32 @@ def test_route_feed_falls_back_to_top_routes_without_ml(client, catalog):
 
 
 @pytest.mark.django_db
-def test_guide_feed_falls_back_to_top_rated_without_ml(client, catalog):
+def test_guide_feed_falls_back_to_top_rated_without_ml(client, catalog, offline_ml):
     resp = client.get("/api/v1/recommendations/guides/")
     assert resp.status_code == 200
     body = resp.json()
     assert body["source"] == "fallback"
     assert body["results"][0]["guide_code"] == "EBC-01"  # highest average_rating
+
+
+@pytest.mark.django_db
+def test_route_feed_uses_ml_ordering_and_carries_reasons(client, catalog, online_ml):
+    """When the ML service answers, its ordering wins and its reasons come through."""
+    resp = client.get("/api/v1/recommendations/routes/")
+    body = resp.json()
+    assert body["source"] == "ml"
+    assert body["model_version"] == "test-ranker-1"
+    # The stub ranked the easy route first, against the fallback's own ordering.
+    assert body["results"][0]["route_name"] == "Ghorepani Poon Hill"
+    assert body["results"][0]["why"] == ["Because it is gentle."]
+
+
+@pytest.mark.django_db
+def test_guide_feed_uses_ml_ordering(client, catalog, online_ml):
+    body = client.get("/api/v1/recommendations/guides/").json()
+    assert body["source"] == "ml"
+    # The stub ranked the lower-rated guide first, so this cannot be the fallback.
+    assert body["results"][0]["guide_code"] == "POON-01"
 
 
 @pytest.mark.django_db
