@@ -2,7 +2,7 @@
   "name": "guideu-real-time-engine",
   "version": "0.1.0",
   "private": true,
-  "description": "GuideU realtime transport — Socket.IO + Redis bridge for chat, live booking/permit/payment updates, guide availability and presence.",
+  "description": "GuideU realtime transport \u2014 Socket.IO + Redis bridge for chat, live booking/permit/payment updates, guide availability and presence.",
   "main": "dist/server.js",
   "scripts": {
     "dev": "tsx watch src/server.ts",
@@ -10,7 +10,8 @@
     "start": "node dist/server.js",
     "typecheck": "tsc --noEmit",
     "lint": "eslint . --ext .ts",
-    "format": "prettier --write \"src/**/*.ts\""
+    "format": "prettier --write \"src/**/*.ts\"",
+    "test": "npm run build && node --test \"tests/*.test.mjs\""
   },
   "dependencies": {
     "cors": "^2.8.5",
