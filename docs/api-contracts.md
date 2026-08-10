@@ -31,13 +31,18 @@ HS256 secret and joins the socket to its identity rooms.
 | server→client | `payment:update` | mirror of `guideu:payment.events` |
 | server→client | `permit:update` | mirror of `guideu:permit.events` |
 | server→client | `notification:new` | mirror of `guideu:notification.events` |
-| client→server | `chat:join` | `{ "room": "booking:<ref>" }` |
-| client→server | `chat:message` | `{ "room": "booking:<ref>", "body": "..." }` |
+| client→server | `chat:join` | `{ "room": "booking:<booking id>" }` |
+| client→server | `chat:message` | `{ "room": "booking:<booking id>", "body": "..." }` |
 | server→client | `chat:message` | `{ "room", "from", "body", "ts" }` |
 | client→server | `guide:availability` | `{ "available": true }` (verified guides only) |
 | server→client | `presence:update` | `{ "user_id", "online": true }` |
 
-Rooms: `user:<id>`, `tourist:<id>`, `guide:<id>`, `booking:<reference>`.
+Rooms: `user:<id>`, `tourist:<id>`, `guide:<id>`, `booking:<booking id>`.
+
+Booking rooms use the booking's **primary key**, not its public reference. The
+Flutter app joins `booking:${booking.id}` and the core-engine parses the room
+back to an integer pk when it resolves participants, so anything fanning out on
+the reference lands in a room with nobody in it.
 
 ## 3. ML inference REST (clients / core-engine ⇒ analytics-engine)
 

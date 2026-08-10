@@ -1,7 +1,8 @@
 /** Shared types mirroring the Redis event contract (see docs/api-contracts.md). */
 
 export interface AuthedUser {
-  userId: number;
+  /** Numeric for Django's integer pks; string tolerated for UUID pks. */
+  userId: number | string;
   role?: string;
 }
 

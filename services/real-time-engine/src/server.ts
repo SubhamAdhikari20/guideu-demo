@@ -23,11 +23,14 @@ async function main(): Promise<void> {
   });
 
   attachSocketHandlers(io);
-  const stopBridge = await startRedisBridge(io);
 
+  // Bind the port first: chat only needs Socket.IO, so the service must come up
+  // whether or not the optional Redis event bridge is reachable.
   httpServer.listen(config.port, () => {
     logger.info('real-time-engine listening', { port: config.port });
   });
+
+  const stopBridge = await startRedisBridge(io);
 
   const shutdown = async (signal: string): Promise<void> => {
     logger.info('shutting down', { signal });
