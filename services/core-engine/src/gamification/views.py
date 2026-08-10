@@ -37,13 +37,13 @@ class BadgeAwardViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, viewse
         return qs.filter(user=user)
 
     @action(detail=False, methods=["get"])
-    def me(self, request):
+    def me(self, request, *args, **kwargs):
         awards = BadgeAward.objects.filter(user=request.user).select_related("badge")
         total = awards.aggregate(points=Sum("points_awarded"))["points"] or 0
         return Response({"total_points": total, "badges": BadgeAwardSerializer(awards, many=True).data})
 
     @action(detail=False, methods=["get"])
-    def leaderboard(self, request):
+    def leaderboard(self, request, *args, **kwargs):
         rows = (
             BadgeAward.objects.values("user_id", "user__username")
             .annotate(total_points=Sum("points_awarded"), badge_count=Count("id"))

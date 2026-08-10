@@ -158,7 +158,7 @@ class PricingBenchmarkViewSet(viewsets.ModelViewSet):
         "pricing and is the deterministic fallback for the anti-scam check.",
     )
     @action(detail=False, methods=["get"], url_path="lookup", permission_classes=[AllowAny])
-    def lookup(self, request):
+    def lookup(self, request, *args, **kwargs):
         query = FairPriceQuerySerializer(data=request.query_params)
         query.is_valid(raise_exception=True)
         result = PricingBenchmark.fair_price_for(

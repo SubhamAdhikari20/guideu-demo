@@ -53,7 +53,7 @@ class ScamReportViewSet(viewsets.ModelViewSet):
         )
 
     @action(detail=True, methods=["post"], permission_classes=[IsAdminUser])
-    def verify(self, request, pk=None):
+    def verify(self, request, pk=None, *args, **kwargs):
         report = self.get_object()
         report.status = ScamReport.Status.VERIFIED
         report.verified_by_moderator = True
@@ -61,7 +61,7 @@ class ScamReportViewSet(viewsets.ModelViewSet):
         return Response(ScamReportSerializer(report).data)
 
     @action(detail=True, methods=["post"], permission_classes=[IsAdminUser])
-    def dismiss(self, request, pk=None):
+    def dismiss(self, request, pk=None, *args, **kwargs):
         report = self.get_object()
         report.status = ScamReport.Status.DISMISSED
         report.save(update_fields=["status", "updated_at"])
@@ -81,7 +81,9 @@ class PriceCheckView(APIView):
     throttle_scope = "scam_check"
 
     @extend_schema(request=PriceCheckRequestSerializer, responses=PriceCheckResultSerializer)
-    def post(self, request):
+    def post(self, request, *args, **kwargs):
+        # *args/**kwargs matter: URLPathVersioning passes `version="v1"` into the
+        # handler, so a bare `post(self, request)` raises TypeError on every call.
         payload = PriceCheckRequestSerializer(data=request.data)
         payload.is_valid(raise_exception=True)
         data = payload.validated_data
