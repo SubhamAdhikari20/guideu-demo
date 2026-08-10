@@ -231,7 +231,11 @@ CELERY_BEAT_SCHEDULE = {
 
 # ---- External services -----------------------------------------------------
 ANALYTICS_ENGINE_URL = os.environ.get("ANALYTICS_ENGINE_URL", "http://localhost:8001")
-ANALYTICS_API_KEY = os.environ.get("ANALYTICS_API_KEY", "")
+# Must match the analytics-engine's own default (see its app/config.py). They
+# disagreed previously, so with no .env every ML call was rejected with 401 and
+# every recommendation silently fell back to the non-personalised ordering —
+# the failure was invisible because the fallback works.
+ANALYTICS_API_KEY = os.environ.get("ANALYTICS_API_KEY", "change-me-internal-service-token")
 
 PAYMENTS = {
     "ESEWA": {
