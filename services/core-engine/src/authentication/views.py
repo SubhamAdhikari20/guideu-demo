@@ -27,15 +27,28 @@ class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all().order_by('-created_at')
     serializer_class = UserSerializer
 
+    # The standard CRUD routes; anything else on this viewset comes from an
+    # @action decorator that declares its own permissions.
+    CRUD_ACTIONS = ('create', 'list', 'retrieve', 'update', 'partial_update', 'destroy')
+
     def get_permissions(self):
-        if self.action in ('create',):
+        """Per-action permissions for the built-in routes.
+
+        Routes added with ``@action`` carry their own ``permission_classes``,
+        which DRF has already applied to this instance. Falling through to the
+        admin-only default below would silently override them — that is what made
+        ``/users/me/`` return 403 for the signed-in user it exists to serve.
+        """
+        if self.action not in self.CRUD_ACTIONS:
+            return super().get_permissions()
+        if self.action == 'create':
             return [permissions.AllowAny()]
         if self.action in ('retrieve', 'update', 'partial_update'):
             return [permissions.IsAuthenticated()]
         return [permissions.IsAdminUser()]
 
     @action(detail=False, methods=['get'], permission_classes=[permissions.IsAuthenticated])
-    def me(self, request):
+    def me(self, request, *args, **kwargs):
         serializer = self.get_serializer(request.user)
         return Response(serializer.data)
 

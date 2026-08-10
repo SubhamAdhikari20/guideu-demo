@@ -36,7 +36,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
         serializer.save(author=self.request.user)
 
     @action(detail=False, methods=["get"])
-    def summary(self, request):
+    def summary(self, request, *args, **kwargs):
         """Aggregate rating for ?guide=<id> or ?route=<id>."""
         qs = Review.objects.all()
         if "guide" in request.query_params:
@@ -46,7 +46,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
         return Response(ReviewSummarySerializer(qs.summary()).data)
 
     @action(detail=True, methods=["post"], permission_classes=[IsAdminUser])
-    def moderate(self, request, pk=None):
+    def moderate(self, request, pk=None, *args, **kwargs):
         """Admin approves/rejects a review (moderation + abuse handling)."""
         review = self.get_object()
         serializer = ModerateSerializer(data=request.data)
@@ -56,7 +56,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
         return Response(ReviewSerializer(review).data, status=status.HTTP_200_OK)
 
     @action(detail=True, methods=["post"])
-    def helpful(self, request, pk=None):
+    def helpful(self, request, pk=None, *args, **kwargs):
         """Mark a review as helpful (upvote)."""
         review = self.get_object()
         Review.objects.filter(pk=review.pk).update(helpful_count=F("helpful_count") + 1)

@@ -24,17 +24,17 @@ class NotificationViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, view
         return Notification.objects.filter(recipient=self.request.user)
 
     @action(detail=False, methods=["get"])
-    def unread_count(self, request):
+    def unread_count(self, request, *args, **kwargs):
         count = self.get_queryset().filter(is_read=False).count()
         return Response({"unread": count})
 
     @action(detail=True, methods=["post"])
-    def read(self, request, pk=None):
+    def read(self, request, pk=None, *args, **kwargs):
         notification = self.get_object()
         notification.mark_read()
         return Response(NotificationSerializer(notification).data)
 
     @action(detail=False, methods=["post"])
-    def read_all(self, request):
+    def read_all(self, request, *args, **kwargs):
         updated = self.get_queryset().filter(is_read=False).update(is_read=True, read_at=timezone.now())
         return Response({"marked_read": updated})

@@ -32,6 +32,6 @@ class UserEventViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.
         serializer.save(actor=self.request.user)
 
     @action(detail=False, methods=["get"], permission_classes=[IsAdminUser])
-    def funnel(self, request):
+    def funnel(self, request, *args, **kwargs):
         """Event-type counts across all users — admin analytics."""
         return Response(UserEvent.objects.funnel())

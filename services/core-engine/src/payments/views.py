@@ -26,7 +26,7 @@ class PaymentTransactionViewSet(viewsets.ModelViewSet):
         serializer.save(user=self.request.user)
 
     @action(detail=True, methods=['post'])
-    def confirm(self, request, pk=None):
+    def confirm(self, request, pk=None, *args, **kwargs):
         """Mark a payment as successful and confirm its booking.
 
         This stands in for real gateway verification (eSewa/Khalti sandbox
