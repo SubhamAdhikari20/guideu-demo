@@ -1,83 +1,147 @@
-import { EmptyState, PageHeader, Panel } from '@/components/ui/card';
-import { asList, coreGet } from '@/lib/api/server';
+import { Info } from 'lucide-react';
 
-interface ScamReport {
-  id: number;
-  service_type: string;
-  region: string;
-  quoted_price_npr: number;
-  benchmark_price_npr: number | null;
-  overcharge_ratio: number | null;
-  scam_severity: string;
-  status: string;
-  created_at: string;
-}
+import { PageHeader } from '@/components/layout/page-header';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { asList, coreGet, hasAdminToken } from '@/lib/api/server';
+
+import { ReportRowActions } from './report-row-actions';
+import type { ScamReport } from './types';
 
 export const dynamic = 'force-dynamic';
 
-function severityColor(severity: string): string {
-  switch (severity) {
-    case 'High':
-      return 'bg-red-100 text-red-700';
-    case 'Medium':
-      return 'bg-amber-100 text-amber-700';
-    default:
-      return 'bg-zinc-100 text-zinc-600';
-  }
-}
+const SEVERITY_VARIANT: Record<string, 'default' | 'secondary' | 'destructive' | 'outline'> = {
+  'Likely Scam': 'destructive',
+  'Severe Overcharge': 'destructive',
+  'Moderate Overcharge': 'default',
+  'Mild Overcharge': 'secondary',
+  Fair: 'outline',
+};
+
+const STATUS_VARIANT: Record<string, 'default' | 'secondary' | 'outline'> = {
+  VERIFIED: 'default',
+  SUBMITTED: 'secondary',
+  DISMISSED: 'outline',
+};
 
 export default async function ScamReportsPage() {
-  const data = await coreGet<unknown>('/trust/scam-reports/');
-  const reports = asList<ScamReport>(data);
+  const page = await coreGet<unknown>('/trust/scam-reports/?ordering=-created_at&page_size=50');
+  const reports = asList<ScamReport>(page);
+
+  const pending = reports.filter((r) => r.status === 'SUBMITTED').length;
 
   return (
     <div>
       <PageHeader
-        title="Scam Reports"
-        subtitle="Overcharge reports from travellers, with the fair-price benchmark and severity."
+        title="Scam reports"
+        subtitle="Tourist-submitted overcharge reports, scored by the anti-scam model and awaiting review."
+        actions={
+          <Badge variant={pending > 0 ? 'default' : 'secondary'} className="tabular-nums">
+            {pending} awaiting review
+          </Badge>
+        }
       />
-      <Panel title="Reports">
-        {reports.length === 0 ? (
-          <EmptyState>
-            No reports to show. This view needs an admin token — set
-            ADMIN_API_TOKEN to a staff JWT so the dashboard can read protected
-            data.
-          </EmptyState>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm">
-              <thead className="border-b border-zinc-200 text-zinc-500 dark:border-zinc-800">
-                <tr>
-                  <th className="py-2 pr-4">Service</th>
-                  <th className="py-2 pr-4">Region</th>
-                  <th className="py-2 pr-4">Quoted</th>
-                  <th className="py-2 pr-4">Fair</th>
-                  <th className="py-2 pr-4">Severity</th>
-                  <th className="py-2">Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {reports.map((r) => (
-                  <tr key={r.id} className="border-b border-zinc-100 dark:border-zinc-900">
-                    <td className="py-2 pr-4 font-medium">{r.service_type}</td>
-                    <td className="py-2 pr-4">{r.region}</td>
-                    <td className="py-2 pr-4">Rs. {r.quoted_price_npr}</td>
-                    <td className="py-2 pr-4">
-                      {r.benchmark_price_npr ? `Rs. ${r.benchmark_price_npr}` : '—'}
-                    </td>
-                    <td className="py-2 pr-4">
-                      <span className={`rounded-full px-2 py-0.5 text-xs ${severityColor(r.scam_severity)}`}>
-                        {r.scam_severity || '—'}
-                      </span>
-                    </td>
-                    <td className="py-2 text-zinc-500">{r.status}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </Panel>
+
+      {!hasAdminToken && (
+        <Card className="border-amber-500/40 bg-amber-500/5 mb-4">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-base">
+              <Info className="size-4" /> Read-only mode
+            </CardTitle>
+            <CardDescription>
+              No staff token is configured, so moderation actions are disabled. Set{' '}
+              <code className="bg-muted rounded px-1 py-0.5 text-xs">ADMIN_API_TOKEN</code> to an
+              admin JWT to verify or dismiss reports.
+            </CardDescription>
+          </CardHeader>
+        </Card>
+      )}
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Reports</CardTitle>
+          <CardDescription>
+            The ratio compares the quoted price against the fair benchmark for that service,
+            region and season. Anything above 1.25× is flagged automatically.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {reports.length === 0 ? (
+            <p className="text-muted-foreground rounded-lg border border-dashed p-8 text-center text-sm">
+              {hasAdminToken
+                ? 'No scam reports have been submitted yet.'
+                : 'No reports could be read. This endpoint needs a staff token.'}
+            </p>
+          ) : (
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="w-14">#</TableHead>
+                    <TableHead>Service</TableHead>
+                    <TableHead>Region</TableHead>
+                    <TableHead className="text-right">Quoted</TableHead>
+                    <TableHead className="text-right">Ratio</TableHead>
+                    <TableHead>Severity</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead className="w-10" />
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {reports.map((report) => (
+                    <TableRow key={report.id}>
+                      <TableCell className="text-muted-foreground tabular-nums">
+                        {report.id}
+                      </TableCell>
+                      <TableCell className="font-medium">{report.service_type}</TableCell>
+                      <TableCell className="text-muted-foreground">{report.region}</TableCell>
+                      <TableCell className="text-right tabular-nums">
+                        {report.quoted_price_npr.toLocaleString()}
+                      </TableCell>
+                      <TableCell className="text-right tabular-nums">
+                        <Tooltip>
+                          <TooltipTrigger
+                            render={
+                              <span className={report.was_flagged_by_app ? 'font-semibold' : ''}>
+                                {report.overcharge_ratio}×
+                              </span>
+                            }
+                          />
+                          <TooltipContent>
+                            Benchmark {report.benchmark_price_npr?.toLocaleString() ?? '—'} NPR
+                          </TooltipContent>
+                        </Tooltip>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant={SEVERITY_VARIANT[report.scam_severity] ?? 'secondary'}>
+                          {report.scam_severity}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant={STATUS_VARIANT[report.status] ?? 'secondary'}>
+                          {report.status}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <ReportRowActions report={report} canModerate={hasAdminToken} />
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }
