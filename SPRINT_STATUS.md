@@ -90,10 +90,34 @@ into `main`:
 `docs/RESEARCH_FINDINGS.md` (the thesis evidence base). Retrain everything with
 `python -m training.run_all --report artifacts/training_report.json`.
 
+## Stabilisation phase (run against a live stack, not just tests)
+Running the whole system end-to-end surfaced six defects that CI had not — the
+detail is in `docs/DEFECTS_AND_FIXES.md`:
+
+- the dev database was never migrated, so nothing could actually serve;
+- Redis was a hard dependency of the "zero-setup" dev settings, 500-ing every
+  cached endpoint without it;
+- **14 API actions** raised `TypeError` on every call (the `api/<version>/`
+  prefix passes `version=` into handlers that did not accept `**kwargs`),
+  including `payments/confirm` and the scam-report moderation actions;
+- `/auth/users/me/` returned 403 because the viewset's `get_permissions`
+  overrode the `@action`'s own permissions;
+- the two services' `ANALYTICS_API_KEY` defaults disagreed, so every ML call was
+  rejected and silently fell back to a non-personalised ordering;
+- the forecaster served the evaluation model (fitted a year behind its own
+  metadata), over-projecting demand.
+
+The admin dashboard was also rebuilt on **shadcn/ui**, and the core-engine's
+existing scam-report `verify`/`dismiss` actions — previously unused — are now
+wired to it through Server Actions.
+
 ## Verification
-`manage.py check` clean; core-engine `pytest` **26 passing**; analytics-engine
-`pytest` **14 passing**; `flutter analyze`/`test` clean; Android debug APK build
-clean; real-time-engine `tsc`/lint clean; web_admin lint/build clean.
+`manage.py check` clean; core-engine `pytest` **34 passing**; analytics-engine
+`pytest` **15 passing**; `flutter analyze`/`test` clean; Android debug APK build
+clean; real-time-engine `tsc`/lint clean; web_admin lint/typecheck/build clean.
+Verified live: Django + FastAPI running together, catalog seeded (2,000 routes /
+8,000 guides / 85,000 benchmarks), recommendations and price checks served by
+the ML models, and moderation actions applied against the database.
 
 ## Key API endpoints (core-engine, `/api/v1`)
 - `auth/token/`, `auth/token/refresh/`, `auth/register/`, `auth/users/me/`
