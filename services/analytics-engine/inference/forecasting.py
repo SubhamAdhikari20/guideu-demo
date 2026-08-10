@@ -23,6 +23,14 @@ from registry import get_card, load_model
 # Typical error from the 2024 held-out year, used to render a band.
 FALLBACK_MAPE = 17.2
 
+# How far past the last observed year the trend may be projected before the
+# result stops being meaningful. The model multiplies a growth rate every month,
+# so two or three years out it compounds a post-COVID recovery rate far beyond
+# anything the market could sustain — projecting 2026 from data ending in 2024
+# produced 6.5M arrivals against a real-world figure nearer 1.15M. Beyond this
+# horizon the caller gets an explicit warning rather than a confident number.
+MAX_RELIABLE_HORIZON_YEARS = 1
+
 
 @lru_cache(maxsize=1)
 def _artifact() -> dict | None:
@@ -83,6 +91,19 @@ def forecast(*, year: int | None = None, months: list[int] | None = None, region
         )
 
     peak = max(items, key=lambda row: row["predicted_arrivals"]) if items else None
+    horizon = max(target_year - last_year, 0)
+
+    note = (
+        "Fitted on three years of post-COVID recovery data; treat the band, not the point estimate, "
+        "as the forecast."
+    )
+    if horizon > MAX_RELIABLE_HORIZON_YEARS:
+        note = (
+            f"Projected {horizon} years past the last observed year ({last_year}). The trend compounds a "
+            "post-COVID recovery rate, so figures this far out overstate demand badly and should not be "
+            f"planned against — forecast {last_year + 1} for a usable number. " + note
+        )
+
     return {
         "model_version": card.version if card else "arrivals_forecaster",
         "year": target_year,
@@ -90,10 +111,12 @@ def forecast(*, year: int | None = None, months: list[int] | None = None, region
         "expected_error_pct": round(mape, 2),
         "peak_month": peak["month"] if peak else None,
         "items": items,
-        "note": (
-            "Fitted on three years of post-COVID recovery data; treat the band, not the point estimate, "
-            "as the forecast."
-        ),
+        # Let callers default their year picker to the last year the model can
+        # actually speak to, instead of "whatever year it is now".
+        "last_observed_year": last_year,
+        "horizon_years": horizon,
+        "reliable": horizon <= MAX_RELIABLE_HORIZON_YEARS,
+        "note": note,
     }
 
 

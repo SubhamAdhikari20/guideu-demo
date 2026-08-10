@@ -161,7 +161,7 @@ def test_segment_assignment(client, api_headers):
 
 @pytest.mark.needs_dataset
 def test_arrivals_forecast(client, api_headers):
-    resp = client.post("/api/v1/forecast/arrivals", headers=api_headers, json={"year": 2025})
+    resp = client.post("/api/v1/forecast/arrivals", headers=api_headers, json={})
     assert resp.status_code == 200
     body = resp.json()
     assert len(body["items"]) == 12
@@ -169,6 +169,33 @@ def test_arrivals_forecast(client, api_headers):
     assert first["lower_estimate"] <= first["predicted_arrivals"] <= first["upper_estimate"]
     # Autumn is Nepal's peak trekking season and the model should reproduce that.
     assert body["peak_month"] in (3, 4, 5, 9, 10, 11)
+    # Default horizon is one year past the data, which the model can support.
+    assert body["reliable"] is True
+    assert body["year"] == body["last_observed_year"] + 1
+
+
+@pytest.mark.needs_dataset
+def test_forecast_flags_unreliable_horizon(client, api_headers):
+    """Projecting years beyond the data must be labelled, not served as fact.
+
+    The trend compounds a post-COVID recovery rate, so a request three years out
+    returns a number far above anything the market could produce. It is still
+    answered — but marked unreliable, with the reason in the note.
+    """
+    base = client.post("/api/v1/forecast/arrivals", headers=api_headers, json={}).json()
+    far = client.post(
+        "/api/v1/forecast/arrivals",
+        headers=api_headers,
+        json={"year": base["last_observed_year"] + 3},
+    ).json()
+
+    assert far["reliable"] is False
+    assert far["horizon_years"] == 3
+    assert "past the last observed year" in far["note"]
+    # And the reason it is unreliable: the projection has run away from reality.
+    assert sum(p["predicted_arrivals"] for p in far["items"]) > sum(
+        p["predicted_arrivals"] for p in base["items"]
+    )
 
 
 def test_models_registry(client, api_headers):

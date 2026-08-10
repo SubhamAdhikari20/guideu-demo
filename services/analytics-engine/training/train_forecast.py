@@ -84,9 +84,17 @@ def train() -> dict:
 
     train_df = series[series["year"] < test_year]
     test_df = series[series["year"] == test_year].sort_values("month")
-    model = _fit_log_trend(train_df)
-    prediction = np.exp(model.predict(design_matrix(test_df)))
+
+    # Model used for the honest metrics below: it has never seen the test year.
+    evaluation_model = _fit_log_trend(train_df)
+    prediction = np.exp(evaluation_model.predict(design_matrix(test_df)))
     actual = test_df["arrival_count"].to_numpy(dtype=float)
+
+    # Model that actually ships: refitted on every observation including the test
+    # year. Registering the evaluation model instead would leave the served
+    # forecaster a year behind its own `last_year`, so each request extrapolated
+    # one extra year of compounding growth and overstated demand.
+    serving_model = _fit_log_trend(series)
 
     metrics = {k: float(v) for k, v in forecast_metrics(actual, prediction).items()}
     best_baseline = min(
@@ -99,10 +107,10 @@ def train() -> dict:
     )
 
     artifact = {
-        "model": model,
+        "model": serving_model,
         "last_t": float(series["t"].max()),
         "last_year": int(series["year"].max()),
-        "seasonal_index": seasonal_index(train_df),
+        "seasonal_index": seasonal_index(series),
         "region_shares": region_shares(arrivals, year=test_year),
         "history": series[["year", "month", "arrival_count"]].to_dict("records"),
     }
@@ -112,7 +120,10 @@ def train() -> dict:
         f"MAPE {metrics['mape']:.2f}% vs {comparison['seasonal_naive']['mape']:.2f}% for a seasonal naive "
         f"forecast ({metrics['mape_improvement_over_seasonal_naive_pct']}% better). "
         f"Note: on the {validation_year} validation year the naive baseline wins instead — three years of "
-        "post-COVID recovery is not enough data for stable model selection, and the report says so."
+        "post-COVID recovery is not enough data for stable model selection, and the report says so. "
+        f"These metrics come from a model fitted to {int(train_df['year'].min())}-{int(train_df['year'].max())}; "
+        f"the registered artifact is refitted on the full series through {test_year} so that serving a "
+        f"{test_year + 1} forecast is a one-year step rather than two."
     )
     card = save_model(
         name="arrivals_forecaster",
