@@ -82,3 +82,6 @@ data/synthetic/*
 .DS_Store
 Thumbs.db
 desktop.ini
+
+# ---- Thesis figure build ---------------------------------------------------
+scripts/_figure_html/
