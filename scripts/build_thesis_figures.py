@@ -2409,7 +2409,12 @@ def trim(path: Path, pad: int = 30) -> None:
         step = max(w // 240, 1)
         while last > 0 and all(px[x, last] == (255, 255, 255) for x in range(0, w, step)):
             last -= 1
-        rgb.crop((0, 0, w, min(h, last + 1 + int(pad * scale)))).save(path, optimize=True)
+        out = rgb.crop((0, 0, w, min(h, last + 1 + int(pad * scale))))
+        # These are flat vector-style graphics, so a 256 colour palette is
+        # visually identical and roughly halves the file. That matters: the
+        # Word document carries 36 of them.
+        out.quantize(colors=256, method=Image.Quantize.MEDIANCUT,
+                     dither=Image.Dither.NONE).save(path, optimize=True)
 
 
 def render(only: str | None = None) -> None:
