@@ -219,26 +219,69 @@ class PricingBenchmark(TimeStampedModel):
         return f"{self.service_type} @ {self.region_id} ({self.season}): {self.fair_price_npr} NPR"
 
     @classmethod
+    def resolve_region_name(cls, region_name: str | None) -> str | None:
+        """Map a caller's region string onto the canonical 15-value vocabulary.
+
+        The dataset writes compound names like ``Everest/Khumbu``, but clients
+        and reports commonly say just ``Everest``. Without this, an alias looks
+        like an unknown region and the price check silently returns nothing.
+        """
+        if not region_name:
+            return None
+        wanted = region_name.strip()
+        if not wanted:
+            return None
+        names = list(Region.objects.values_list("name", flat=True))
+        lowered = wanted.casefold()
+        for name in names:
+            if name.casefold() == lowered:
+                return name
+        # "Everest" -> "Everest/Khumbu", "Khumbu" -> "Everest/Khumbu"
+        for name in names:
+            if any(part.strip().casefold() == lowered for part in name.split("/")):
+                return name
+        return None
+
+    @classmethod
     def fair_price_for(cls, *, service_type: str, region_name: str | None = None, season: str | None = None) -> dict | None:
         """Aggregate a fair-price range for a (service, region, season).
 
-        Returns ``None`` when there is no benchmark sample for the service.
+        Falls back progressively — (service, region, season) -> (service,
+        region) -> (service) — so a caller who names an unknown region or an
+        out-of-vocabulary season still gets the national benchmark instead of
+        nothing. The returned ``granularity`` says which level answered, which
+        matches what the analytics-engine reports for the same lookup.
+
+        Returns ``None`` only when the service itself has no benchmark sample.
         """
-        qs = cls.objects.filter(service_type__iexact=service_type)
-        if region_name:
-            qs = qs.filter(region__name__iexact=region_name)
-        if season:
-            qs = qs.filter(season__iexact=season)
-        agg = qs.aggregate(fair=Avg("fair_price_npr"), low=Avg("min_fair_npr"), high=Avg("max_fair_npr"))
-        if agg["fair"] is None:
-            return None
-        return {
-            "service_type": service_type,
-            "region": region_name,
-            "season": season,
-            "fair_price_npr": round(agg["fair"]),
-            "min_fair_npr": round(agg["low"]),
-            "max_fair_npr": round(agg["high"]),
-            "currency": "NPR",
-            "sample_size": qs.count(),
-        }
+        base = cls.objects.filter(service_type__iexact=service_type)
+        canonical_region = cls.resolve_region_name(region_name)
+
+        attempts: list[tuple[str, str | None, str | None]] = []
+        if canonical_region and season:
+            attempts.append(("service+region+season", canonical_region, season))
+        if canonical_region:
+            attempts.append(("service+region", canonical_region, None))
+        attempts.append(("service", None, None))
+
+        for granularity, region_filter, season_filter in attempts:
+            qs = base
+            if region_filter:
+                qs = qs.filter(region__name__iexact=region_filter)
+            if season_filter:
+                qs = qs.filter(season__iexact=season_filter)
+            agg = qs.aggregate(fair=Avg("fair_price_npr"), low=Avg("min_fair_npr"), high=Avg("max_fair_npr"))
+            if agg["fair"] is None:
+                continue
+            return {
+                "service_type": service_type,
+                "region": region_filter,
+                "season": season_filter,
+                "fair_price_npr": round(agg["fair"]),
+                "min_fair_npr": round(agg["low"]),
+                "max_fair_npr": round(agg["high"]),
+                "currency": "NPR",
+                "sample_size": qs.count(),
+                "granularity": granularity,
+            }
+        return None

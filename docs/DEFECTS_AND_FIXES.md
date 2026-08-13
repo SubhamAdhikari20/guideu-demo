@@ -132,6 +132,51 @@ a three-year horizon is flagged.
 
 ---
 
+## 7. An unrecognised region turned a 5.7x overcharge into "not a scam"
+
+**Symptom.** `POST /trust/price-check/` with `region: "Everest"` answered
+`is_likely_scam: false` for a quote of 25,000 NPR against a benchmark of 4,293.
+The same request with `region: "Everest/Khumbu"` correctly returned
+`Likely Scam`.
+
+**Root cause.** The catalogue stores the dataset's compound region names, so the
+canonical value is `Everest/Khumbu`. `PricingBenchmark.fair_price_for` filtered
+on `region__name__iexact`, found nothing for `Everest`, and returned `None`.
+`check_price` then took an early return that reported "no benchmark" — **and
+never called the analytics-engine at all**, even though that service holds its
+own benchmark table and would have answered.
+
+**Why it hid.** Three things lined up. The unit tests only ever passed region
+names they had just created in a fixture, so an alias was never tried. The
+response was a clean `200` with a plausible body. And the failure direction was
+"nothing to worry about", which is the one outcome nobody investigates. This is
+the same shape as defect 5: graceful degradation covering for a real fault, but
+worse, because here the degraded answer is the reassuring one.
+
+**Fix.** Three changes in `src/trust/services.py` and `src/catalog/models.py`:
+
+1. `Region` names are resolved through their `/` segments, so `Everest`,
+   `Khumbu` and `everest` all reach `Everest/Khumbu`.
+2. `fair_price_for` now falls back progressively — (service, region, season) ->
+   (service, region) -> (service) — and reports which level answered, matching
+   what the analytics-engine already did. The explanation line says "across
+   Nepal" rather than naming a region it did not actually use.
+3. When there is no local benchmark, the ML service is asked anyway. If nothing
+   can answer, the result is `severity: "Unknown"` instead of a silence that
+   reads as "Fair".
+
+The same pass fixed a smaller inconsistency: the response could carry two
+different shortfall figures for one quote, because the explanation list used the
+region-scoped benchmark while `fair_wage_message` came from the model's national
+one. The local message now wins, and either service raising the wage flag is
+enough to raise it.
+
+**Test debt this exposed.** Five tests were added: four parametrised over region
+aliases, and one asserting that an unknown region still flags an overcharge and
+says which benchmark it used.
+
+---
+
 ## What this says about the testing approach
 
 The thesis already notes that automated coverage was thin. This exercise shows
@@ -147,7 +192,14 @@ Three kinds of test were added in response, and each maps to a defect class:
 | Contract test over the URL conf | Handler-signature and routing mistakes, for every current and future route |
 | Client-patched integration tests | Behaviour differences between the ML path and the fallback path |
 | Horizon assertions on the forecaster | A model being served outside the range its metrics describe |
+| Alias and unknown-value cases on lookups | Vocabulary drift between two services that share a dataset |
 
-Counts after this work: **34 core-engine tests, 15 analytics-engine tests**, up
+Counts after this work: **39 core-engine tests, 15 analytics-engine tests**, up
 from 26 and 14, with the increase concentrated on the wiring rather than on more
 unit coverage of already-working functions.
+
+One more pattern worth naming, because defects 5 and 7 share it. Both were
+fallbacks doing their job so well that a real fault produced a calm, plausible,
+200-status answer. A fallback should always say which path produced the result,
+and a safety feature should never be allowed to fail in the reassuring
+direction. Both rules are now enforced in code rather than remembered.
