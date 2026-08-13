@@ -235,38 +235,28 @@ body{background:#06120D}
   background:rgba(144,194,38,.07)}
 .mark{position:absolute;top:306px;left:50%;transform:translateX(-50%);width:272px}
 
-.ttl{position:absolute;top:450px;left:74px;right:74px;text-align:center;
-  font-family:Cambria,Georgia,serif;font-size:42px;line-height:1.25;
+.ttl{position:absolute;top:455px;left:72px;right:72px;text-align:center;
+  font-family:Cambria,Georgia,serif;font-size:39px;line-height:1.28;
   font-weight:700;color:#fff;letter-spacing:-.3px}
 .ttl em{color:#B4DC66;font-style:normal}
-.uline{position:absolute;top:632px;left:50%;transform:translateX(-50%);
-  width:126px;height:4px;border-radius:3px;
-  background:linear-gradient(90deg,#90C226,#E8C547)}
-.tag{position:absolute;top:664px;left:168px;right:168px;text-align:center;
-  font-family:Cambria,Georgia,serif;font-style:italic;font-size:19px;
-  line-height:1.6;color:#9DB7A6}
+.uline{position:absolute;top:690px;left:50%;transform:translateX(-50%);
+  width:150px;height:4px;border-radius:3px;
+  background:linear-gradient(90deg,#90C226,#E8C547,#00A2AE)}
 
-.chips{position:absolute;top:790px;left:0;right:0;display:flex;
-  justify-content:center;gap:13px;font-family:"Segoe UI",sans-serif}
-.chip{border:1px solid rgba(255,255,255,.16);border-radius:9px;padding:11px 20px;
-  background:rgba(255,255,255,.05);text-align:center;min-width:150px}
-.chip b{display:block;font-size:24px;font-weight:700;color:#B4DC66;line-height:1}
-.chip span{display:block;font-size:11.5px;color:#8FA598;margin-top:5px;
-  letter-spacing:.5px}
-
-/* ground band the range stands on */
-.ground{position:absolute;left:0;right:0;bottom:0;height:404px;
+/* ground band the range stands on — the range is tall enough to close the gap
+   under the title now that the metric chips have gone */
+.ground{position:absolute;left:0;right:0;bottom:0;height:440px;
   background:linear-gradient(180deg,#08201A 0%,#061512 55%,#040E0B 100%)}
-.haze{position:absolute;left:0;right:0;bottom:404px;height:260px;z-index:0;
+.haze{position:absolute;left:0;right:0;bottom:440px;height:300px;z-index:0;
   background:radial-gradient(60% 100% at 50% 100%,rgba(144,194,38,.16) 0%,
     rgba(144,194,38,0) 70%)}
-.ridge{position:absolute;left:0;right:0;bottom:404px;height:2px;z-index:14;
+.ridge{position:absolute;left:0;right:0;bottom:440px;height:2px;z-index:14;
   background:linear-gradient(90deg,rgba(144,194,38,0),#90C226 25%,#E8C547 52%,
     #00A2AE 76%,rgba(0,162,174,0))}
-.range{position:absolute;left:0;right:0;bottom:404px;height:396px}
+.range{position:absolute;left:0;right:0;bottom:440px;height:490px}
 .mt{position:absolute;bottom:0}
 .snow{position:absolute}
-.trail{position:absolute;bottom:456px;left:0;right:0;height:410px;z-index:12}
+.trail{position:absolute;bottom:492px;left:0;right:0;height:410px;z-index:12}
 .node{position:absolute;width:11px;height:11px;border-radius:50%;
   background:#E8C547;box-shadow:0 0 0 4px rgba(232,197,71,.22)}
 
@@ -315,35 +305,26 @@ COVER = f"""<!doctype html><html><head><meta charset="utf-8"><style>{BASE_CSS}{C
 <div class="mod">ST6001CEM &nbsp;&middot;&nbsp; INDIVIDUAL PROJECT</div>
 <img class="mark" src="data:image/png;base64,{LOGO_GUIDEU}">
 
-<div class="ttl">An AI-Driven and Data-Backed Platform for<br>
-Trusted Trip Planning and<br><em>Verified Guide Booking</em> in Nepal</div>
+<div class="ttl">A Revolutionary, Reliable, Personalized and<br>
+Centralized Platform for Trusted Trip Planning<br>
+and <em>Verified Guide Booking</em> for Tourists in Nepal</div>
 <div class="uline"></div>
-<div class="tag">Machine learning on 500,000 records of travel-planning data,
-built to close the information gap between tourists and Nepal's
-informal-sector providers</div>
-
-<div class="chips">
-  <div class="chip"><b>500,000</b><span>ROWS OF DATA</span></div>
-  <div class="chip"><b>5</b><span>ML MODELS</span></div>
-  <div class="chip"><b>5</b><span>AGILE SPRINTS</span></div>
-  <div class="chip"><b>99.1%</b><span>ANTI-SCAM ACCURACY</span></div>
-</div>
 
 <div class="ground"></div>
 <div class="haze"></div>
 <div class="range">
-  {_peak(-210, 540, 240, "#0A2418", 1)}
-  {_peak(270, 470, 216, "#0A2418", 1)}
-  {_peak(910, 520, 258, "#0A2418", 1)}
-  {_peak(-60, 500, 302, "#123C2A", 2)}
-  {_peak(750, 540, 326, "#123C2A", 2)}
-  {_cap(750, 540, 326, 0.20, 8)}
-  {_peak(240, 640, 392, "#1B5A3E", 3)}
-  {_cap(240, 640, 392, 0.22, 9)}
-  {_peak(-10, 340, 208, "#25714A", 4)}
-  {_cap(-10, 340, 208, 0.20, 10)}
-  {_peak(650, 380, 228, "#25714A", 4)}
-  {_cap(650, 380, 228, 0.19, 10)}
+  {_peak(-210, 540, 293, "#0A2418", 1)}
+  {_peak(270, 470, 264, "#0A2418", 1)}
+  {_peak(910, 520, 315, "#0A2418", 1)}
+  {_peak(-60, 500, 368, "#123C2A", 2)}
+  {_peak(750, 540, 398, "#123C2A", 2)}
+  {_cap(750, 540, 398, 0.20, 8)}
+  {_peak(240, 640, 478, "#1B5A3E", 3)}
+  {_cap(240, 640, 478, 0.22, 9)}
+  {_peak(-10, 340, 254, "#25714A", 4)}
+  {_cap(-10, 340, 254, 0.20, 10)}
+  {_peak(650, 380, 278, "#25714A", 4)}
+  {_cap(650, 380, 278, 0.19, 10)}
 </div>
 <div class="ridge"></div>
 
@@ -742,9 +723,9 @@ add("fig08_questions", head(
 
 add("fig09_hypotheses", head(
     "Chapter 2 · Research hypotheses",
-    "Three Hypotheses, Set Before Any Model Was Trained",
-    "Each one carries a target taken from published work rather than a number "
-    "invented to be easy to hit.")
+    "Two Hypotheses, Parallel to the Research Questions",
+    "The technical hypothesis sets measurable model thresholds. The ethical "
+    "hypothesis tests the safeguards that were actually implemented.")
     + '<div class="body">'
     + ''.join(
         f'<div class="card solid" style="border-left:6px solid {c};margin-bottom:14px">'
@@ -754,38 +735,29 @@ add("fig09_hypotheses", head(
         f'<span class="pill {v[1]}" style="margin-top:7px">{v[0]}</span></div>'
         f'<div style="flex:1"><h3 style="font-size:20.5px">{t}</h3><p>{d}</p></div>'
         f'<div style="flex:none;width:330px;background:#F4F8EC;border-radius:11px;padding:14px 16px">'
-        f'<p style="font-size:15.5px"><b class="hl">Where the target came from.</b> {src}</p></div>'
+        f'<p style="font-size:15.5px"><b class="hl">How it was tested.</b> {src}</p></div>'
         f'</div></div>'
         for h, t, d, src, v, c in [
-            ("H1", "Personalisation will beat a popularity baseline by a practically "
-             "meaningful margin",
-             "Measured on hit-rate at ten over the 2024 test year, against a "
-             "non-personalised popularity ranking scored through the same harness. Result: "
-             "0.0135 against 0.0083, a lift of 1.63 times.",
-             "The recommender literature consistently finds personalisation beats popularity "
-             "once even modest user signal exists (Adomavicius &amp; Tuzhilin, 2005), though "
-             "Cremonesi et al. (2010) warn popularity is a far stronger comparator than most "
-             "papers admit.", ("Supported", "ok"), TEAL),
-            ("H2", "The scam-risk model will reach at least 90% accuracy or F1 on held-out "
-             "data",
-             "Enough to support a usable risk signal at provider level. Result: 99.1% "
-             "accuracy and F1 0.980 on 2024, holding at F1 0.958 on sixty service and "
-             "region combinations the model had never seen.",
-             "Deception-detection work found automated classifiers reaching roughly ninety "
-             "per cent on review text while human judges performed close to chance (Ott et "
-             "al., 2011).", ("Supported", "ok"), "#6B911C"),
-            ("H3", "Fairness-aware adjustments can be applied without a large loss in "
-             "predictive usefulness",
-             "The hypothesis that matters most for RQ2, because if fairness and accuracy "
-             "trade off badly then ethical design carries a real cost that has to be "
-             "reported rather than assumed away.",
-             "Supported for what was implemented, but by a weaker test than the wording "
-             "implies. Excluding protected attributes cost almost nothing; no intervention "
-             "that genuinely trades against the objective was applied.",
-             ("Supported, weakly", "mid"), AMBER),
+            ("H1", "The learned decision-support models will outperform their simple "
+             "baselines on a temporal holdout",
+             "The recommender should exceed popularity on HR@10, while the anti-scam "
+             "classifier should reach at least 90% accuracy and F1 on 2024 data. Both "
+             "conditions were met: 0.0135 versus 0.0083 HR@10, 99.1% accuracy and 0.980 F1.",
+             "This combines the measurable parts of RQ1. Popularity is a demanding ranking "
+             "baseline (Cremonesi et al., 2010), and the classifier threshold follows the "
+             "deception-detection result of Ott et al. (2011).", ("Supported", "ok"), TEAL),
+            ("H2", "Provider- and tourist-protection controls can operate without hiding "
+             "risk or removing useful decision support",
+             "The model must exclude protected attributes and keep F1 above 0.90; the "
+             "fair-wage rule must warn on underquoted guide and porter labour but not on "
+             "non-labour services. These checks passed, while the audit still triggered the "
+             "0.15 human-review gate.",
+             "This is the testable counterpart of RQ2. It measures implemented safeguards, "
+             "but a field pilot is still needed to establish their effect on real workers "
+             "and tourists.", ("Partly supported", "mid"), AMBER),
         ])
     + '</div>'
-    + foot("The three research hypotheses and their verdicts"))
+    + foot("The two research hypotheses and their verdicts"))
 
 
 add("fig10_claims", head(
@@ -2347,9 +2319,9 @@ add("fig35_limits_future", head(
             ("All evaluation is offline",
              "No user ever saw a recommendation and acted on it, and offline ranking gains "
              "are known to transfer imperfectly to online behaviour."),
-            ("The H3 test is weak",
-             "What was measured is that a model which never saw protected attributes still "
-             "performs well. That is not the same claim as fairness being affordable."),
+            ("The H2 test is bounded",
+             "The implemented safeguards work in tests, but that is not the same as proving "
+             "fair outcomes for real providers or tourists."),
             ("Coverage is adequate, not comprehensive",
              "58 tests across four services, concentrated on inference and API contracts "
              "rather than on the training code."),
@@ -2373,10 +2345,10 @@ add("fig35_limits_future", head(
              "An A/B comparison between the learned ranker and the popularity baseline with "
              "real users would test whether a 1.63 times offline lift corresponds to any "
              "behavioural difference at all."),
-            ("A proper test of H3",
+            ("A stronger test of H2",
              "Apply a fairness intervention that genuinely trades against accuracy &mdash; an "
-             "equalised-odds constraint or reweighting &mdash; and measure the loss. Only then "
-             "can the claim that fairness is affordable here be made with confidence."),
+             "equalised-odds constraint or reweighting &mdash; and evaluate provider outcomes "
+             "in a field pilot. Only then can the ethical claim be strengthened."),
             ("The discrimination surface verification creates",
              "Following Edelman et al. (2017), a controlled study of whether guide names "
              "influence selection on the platform would establish whether the problem exists "
@@ -2391,6 +2363,433 @@ add("fig35_limits_future", head(
       'than failing.</p></div>'
     + '</div>'
     + foot("Threats to validity and the work that follows from them"))
+
+
+# ==========================================================================
+# replacements for the five figures still drawn in the first design system
+# ==========================================================================
+add("fig36_framework", head(
+    "Chapter 1 · Theoretical framework",
+    "Three Market Failures, Three Built Responses",
+    "Each theory names a specific failure in Nepal's guide market, and each "
+    "failure has a feature in the delivered system that answers it.")
+    + '<div class="body">'
+    + '<div class="grid3" style="margin-bottom:16px">'
+    + ''.join(
+        f'<div class="card solid" style="border-top:5px solid {c}">'
+        f'<div class="pill" style="background:{c}1A;color:{c}">{src}</div>'
+        f'<h3 style="margin-top:9px">{t}</h3>'
+        f'<p style="font-size:15.9px">{d}</p>'
+        f'<div class="vsep"></div>'
+        f'<p style="font-size:14.9px;color:#6D766C;letter-spacing:.6px;'
+        f'text-transform:uppercase;font-weight:700">The failure it names</p>'
+        f'<p style="font-size:15.5px;margin-top:5px">{f}</p></div>'
+        for src, t, d, f, c in [
+            ("Akerlof, 1970", "Information asymmetry",
+             "Where buyers cannot judge quality before paying, they bid the average price, "
+             "good sellers withdraw, and average quality falls again.",
+             "A tourist cannot tell a licensed guide of ten years from someone with a "
+             "printed card, so both are bargained down to the same number.", TEAL),
+            ("Simon, 1955", "Bounded rationality",
+             "Real decision makers do not optimise. They search under limits of time and "
+             "attention until an option is good enough, then stop.",
+             "Nobody cross-checks four hundred reviews and a licence register. They ask the "
+             "hotel desk and book, which is exactly what a scam is built around.", AMBER),
+            ("Thaler &amp; Sunstein, 2008", "Choice architecture",
+             "There is no neutral way to present options. Order, defaults and emphasis all "
+             "move what people finally pick.",
+             "The moment the platform ranks guides it is steering money and, in the "
+             "mountains, sometimes safety. The ranking is never innocent.", INDIGO),
+        ])
+    + '</div>'
+    + '<div class="card dark" style="margin-bottom:14px">'
+      '<h3>The same three columns, read as engineering requirements</h3></div>'
+    + '<div class="grid3">'
+    + ''.join(
+        f'<div class="card tint"><h3 style="font-size:19.8px">{t}</h3>'
+        f'<p style="font-size:15.9px">{d}</p>'
+        f'<div class="vsep"></div>'
+        f'<p style="font-size:14.9px;color:#6D766C"><b class="hl">Where it lives.</b> {w}</p></div>'
+        for t, d, w in [
+            ("Signalling and screening",
+             "Verified licence data is a signal that is costly to fake. Price benchmarks and "
+             "scam scoring are screening the buyer cannot perform alone.",
+             "<code>catalog.GuideRegistry</code>, <code>trust.check_price</code> and the "
+             "anti-scam router."),
+            ("Search cost reduction",
+             "The recommender performs the aggregation and comparison a tired traveller "
+             "cannot, and returns a list short enough to actually read.",
+             "<code>route_recommender</code> behind <code>/recommendations/routes/</code>, "
+             "capped at three variants per trek."),
+            ("Restraint in the ranking",
+             "Every recommendation ships with the reasons behind it, and no paid placement "
+             "exists anywhere in the ranking path.",
+             "The <code>why</code> and <code>components</code> fields returned with every "
+             "ranked item."),
+        ])
+    + '</div></div>'
+    + foot("Theory, the failure it names, and the response that was built"))
+
+
+add("fig37_baseline_first", head(
+    "Chapter 1 · Evaluation protocol",
+    "Baseline First, and a Split That Cannot Flatter the Model",
+    "Two rules governed every model in this project. Both cost accuracy on "
+    "paper and both were kept anyway.")
+    + '<div class="body">'
+    + '<div class="card solid" style="margin-bottom:16px">'
+      '<h3>Rule one — nothing ships until it beats the obvious comparator</h3>'
+      '<div class="row" style="margin-top:14px;align-items:stretch">'
+    + '<div class="arrow" style="display:none"></div>'
+    + ''.join(
+        f'<div class="card fill tint" style="text-align:center">'
+        f'<div class="num" style="margin:0 auto 9px auto">{i}</div>'
+        f'<h3 style="font-size:18.6px">{t}</h3>'
+        f'<p style="font-size:15.5px">{d}</p></div>'
+        + ('<div class="arrow">&rarr;</div>' if i < 4 else '')
+        for i, (t, d) in enumerate([
+            ("Write the baseline", "Popularity, the group mean, or seasonal naive. Whatever "
+             "a sensible person would do without machine learning."),
+            ("Score the baseline", "On the same test period and the same metric, before any "
+             "model is trained at all."),
+            ("Train the simple model", "Logistic regression, ridge, gradient boosting. "
+             "scikit-learn, not a neural network."),
+            ("Keep it only if it wins", "Two of the five models effectively lost. Those "
+             "results are reported rather than buried."),
+        ], start=1))
+    + '</div></div>'
+    + '<div class="row">'
+    + '<div class="card fill"><h3>Rule two — split on time, never at random</h3>'
+      '<p style="margin-bottom:12px">Train on 2021&ndash;23, select on 2023, test only on '
+      '2024. The model is never scored on an interaction that happened before something it '
+      'already learned from.</p>'
+      '<div style="display:flex;height:44px;border-radius:8px;overflow:hidden;'
+      'font-size:15.5px;font-weight:600;color:#fff;margin-bottom:6px">'
+      '<div style="flex:3;background:#3E5514;display:flex;align-items:center;'
+      'justify-content:center">TRAIN &nbsp;2021&ndash;23</div>'
+      '<div style="flex:1;background:#00838F;display:flex;align-items:center;'
+      'justify-content:center">SELECT &nbsp;2023</div>'
+      '<div style="flex:1;background:#C77B00;display:flex;align-items:center;'
+      'justify-content:center">TEST &nbsp;2024</div></div>'
+      '<p class="small" style="color:#98A093">Time runs left to right. Nothing on the right '
+      'is ever visible to anything on the left.</p>'
+      '<div class="vsep"></div>'
+      '<div style="display:flex;gap:3px;height:34px;margin-bottom:6px">'
+    + ''.join(
+        '<div style="flex:1;border-radius:4px;background:%s"></div>'
+        % ("#C0392B" if i in (1, 4, 6, 9, 12, 13) else "#C3CABB")
+        for i in range(16))
+    + '</div>'
+    + '<p class="small" style="color:#98A093">A random split scatters 2024 into training. '
+      'The scores go up and mean nothing.</p></div>'
+    + '<div class="card fill tint"><h3>What the two rules cost, honestly</h3>'
+      '<p><b class="hl">The numbers look worse.</b> A random split on this data produces a '
+      'far kinder hit rate, and a report that quoted it would read better.</p>'
+      '<p><b class="hl">Two models failed their comparator.</b> The guide\'s own star '
+      'rating scored 0.705 RMSE against 0.688 for simply predicting the mean, and '
+      'segmentation returned a 0.13 silhouette at every value of k.</p>'
+      '<p><b class="hl">But the surviving numbers mean something.</b> A 1.63 times lift over '
+      'popularity on held-out 2024 data is a small claim that survives inspection, which is '
+      'worth more than a large one that does not.</p>'
+      '<div class="vsep"></div>'
+      '<p style="font-size:15.5px;color:#6D766C">Bergmeir et al. (2018) and Tashman (2000) '
+      'both argue the same point for time-ordered data: cross-validation that ignores the '
+      'ordering measures the wrong thing.</p></div>'
+    + '</div></div>'
+    + foot("Baseline-first design and a temporal split"))
+
+
+add("fig38_sprint_history", head(
+    "Chapter 3 · Delivery record",
+    "Five Sprints, and What Moved in Each One",
+    "The record includes the work that was deferred, because a plan that "
+    "never changed would not be an honest account of the term.")
+    + '<div class="body">'
+    + '<table class="t" style="margin-bottom:16px"><tr>'
+      '<th style="width:78px">Sprint</th><th style="width:190px">Theme</th>'
+      '<th>Delivered</th><th style="width:300px">Deferred, and why</th></tr>'
+    + ''.join(
+        f'<tr{" class=hi" if hi else ""}><td class="n">{s}</td><td><b class="hl">{th}</b></td>'
+        f'<td>{d}</td><td style="color:#6D766C">{df}</td></tr>'
+        for s, th, d, df, hi in [
+            ("1", "Foundation",
+             "Monorepo, five service skeletons, Docker Compose with Nginx and MLflow, "
+             "per-service CI, architecture decision records.",
+             "Nothing. Scope was deliberately small so the plumbing was proven before "
+             "any feature depended on it.", False),
+            ("2", "Identity and catalogue",
+             "Authentication end to end, destinations and guides browsing against the "
+             "real catalogue, home shell and profile tab in Flutter.",
+             "Admin verification and user-management screens. The mobile path was the "
+             "one the research questions needed.", False),
+            ("3", "Transactions",
+             "Package bookings, a simulated payment confirmation, guide reviews held "
+             "pending moderation, ownership scoping on every list.",
+             "Cryptographic gateway callbacks for eSewa, Khalti and Stripe. Real "
+             "settlement was never in scope for a student prototype.", False),
+            ("4", "Machine learning in the product",
+             "Recommendations proxied from the analytics engine with a database "
+             "fallback, anti-scam price check, live chat over Socket.IO, festivals, "
+             "first admin dashboard.",
+             "MongoDB for chat. Postgres already held the participants, and a second "
+             "datastore bought nothing at this size.", True),
+            ("5", "Planning, safety and hardening",
+             "Trip workspace with AI suggestions and a budget bar, currency conversion, "
+             "emergency SOS, rate limits, input sanitisation, security headers, "
+             "production compose file, twenty-one tests.",
+             "Offline map tiles and on-device translation. Both were could-haves at "
+             "proposal stage and both needed data the catalogue does not hold.", False),
+        ])
+    + '</table>'
+    + '<div class="grid4">'
+    + ''.join(
+        f'<div class="stat {k}"><b>{v}</b><span>{l}</span></div>'
+        for v, l, k in [
+            ("5", "sprint branches, each merged to main with a no-fast-forward release merge", ""),
+            ("18", "Django apps, sixteen of them routed behind versioned API paths", "t"),
+            ("59", "automated tests across Django, FastAPI, Node and Flutter", "a"),
+            ("4", "features deferred on the record rather than quietly dropped", "v"),
+        ])
+    + '</div></div>'
+    + foot("Sprint history, scope decisions and deferrals"))
+
+
+add("fig39_deployment", head(
+    "Chapter 5 · As built",
+    "What Actually Runs, and What Was Provisioned and Left Unused",
+    "The deployment view rather than the design view. One box is drawn in red "
+    "because it was built into the infrastructure and then never used.")
+    + '<div class="body">'
+    + '<div class="card solid" style="margin-bottom:14px">'
+      '<div class="pill ink">Client layer</div>'
+      '<div class="grid2" style="margin-top:11px">'
+      '<div class="card tint"><h3 style="font-size:19.8px">Flutter mobile application</h3>'
+      '<p style="font-size:15.9px">Fifteen features under a data / domain / presentation '
+      'split, Riverpod 3 and go_router. The traveller-facing product.</p></div>'
+      '<div class="card tint"><h3 style="font-size:19.8px">Next.js administration console</h3>'
+      '<p style="font-size:15.9px">Server-rendered so the analytics key never reaches the '
+      'browser. Reviews model health and festivals, and moderates scam reports.</p></div>'
+      '</div></div>'
+    + '<div style="text-align:center;color:#A9BE7C;font-size:30px;margin:2px 0 8px 0">&darr;</div>'
+    + '<div class="card dark" style="text-align:center;margin-bottom:10px">'
+      '<h3 style="margin:0">Nginx reverse proxy &nbsp;·&nbsp; path routing, TLS termination '
+      'and security headers</h3></div>'
+    + '<div style="text-align:center;color:#A9BE7C;font-size:30px;margin:2px 0 8px 0">&darr;</div>'
+    + '<div class="card solid" style="margin-bottom:14px">'
+      '<div class="pill ink">Service layer</div>'
+      '<div class="grid3" style="margin-top:11px">'
+    + ''.join(
+        f'<div class="card" style="border-top:5px solid {c}">'
+        f'<h3 style="font-size:19.8px">{t}</h3><p style="font-size:15.5px">{d}</p></div>'
+        for t, d, c in [
+            ("Core engine &mdash; Django and DRF",
+             "Eighteen apps, thirty models, JWT with rotation, Celery Beat. Owns every "
+             "write and every permission decision.", TEAL),
+            ("Analytics engine &mdash; FastAPI",
+             "Stateless. Five models loaded at start-up and served behind an internal API "
+             "key. Holds no user data at all.", AMBER),
+            ("Real-time engine &mdash; Node and Socket.IO",
+             "Chat delivery, presence and availability. Carries no business rules and "
+             "persists each message back through the core REST API.", INDIGO),
+        ])
+    + '</div></div>'
+    + '<div class="card solid">'
+      '<div class="pill ink">Data layer</div>'
+      '<div class="grid3" style="margin-top:11px">'
+      '<div class="card tint"><h3 style="font-size:19.8px">PostgreSQL</h3>'
+      '<p style="font-size:15.5px">Primary store for all thirty models, chat history '
+      'included. Reachable only on the internal network in the production compose file.</p></div>'
+      '<div class="card tint"><h3 style="font-size:19.8px">Redis</h3>'
+      '<p style="font-size:15.5px">Cache, Celery broker and the throttle backend. Festival '
+      'and currency lookups are cached rather than recomputed.</p></div>'
+      '<div class="card" style="border:2px dashed #C0392B;background:#FDF3F2">'
+      '<h3 style="font-size:19.8px;color:#9A2F26">MongoDB &mdash; provisioned, unused</h3>'
+      '<p style="font-size:15.5px">Planned for chat, then not needed once the participants '
+      'already lived in Postgres. It stayed in the compose file and is reported here rather '
+      'than quietly deleted.</p></div>'
+      '</div></div>'
+    + '</div>'
+    + foot("Deployed units, datastores and one honest dead end"))
+
+
+add("fig40_plan_vs_delivered", head(
+    "Chapter 5 · Plan against outcome",
+    "Where the Proposal Was Wrong, and What Replaced It",
+    "Five decisions changed between the March 2026 proposal and the delivered "
+    "system. Each one is recorded with the reason it changed.")
+    + '<div class="body">'
+    + '<div class="row" style="margin-bottom:10px">'
+      '<div class="fill" style="text-align:center"><div class="pill ink" '
+      'style="font-size:15.5px">Proposed &mdash; March 2026</div></div>'
+      '<div style="width:34px"></div>'
+      '<div class="fill" style="text-align:center"><div class="pill" '
+      'style="font-size:15.5px">Delivered &mdash; August 2026</div></div></div>'
+    + ''.join(
+        f'<div class="row" style="margin-bottom:10px;align-items:stretch">'
+        f'<div class="card fill" style="background:#F4F5F2;border-color:#E0E3DC">'
+        f'<h3 style="font-size:19.8px;color:#68766B">{a}</h3></div>'
+        f'<div class="arrow">&rarr;</div>'
+        f'<div class="card fill tint"><h3 style="font-size:19.8px">{b}</h3>'
+        f'<p style="font-size:15.5px;margin-top:5px"><b class="hl">Why.</b> {w}</p></div></div>'
+        for a, b, w in [
+            ("MongoDB as the database",
+             "PostgreSQL as the primary store",
+             "Thirty models with real foreign keys wanted relational integrity. Mongo was "
+             "left in the compose file and never used, which is reported above."),
+            ("Express and Node for the backend API",
+             "Django and DRF, with Node kept for sockets only",
+             "The ORM, admin, auth and permission layer removed weeks of work. Node stayed "
+             "where it was genuinely better, which is the socket transport."),
+            ("A single mobile application",
+             "Five deployable units and an admin console",
+             "Separating the models into their own service made them auditable and let the "
+             "product keep working through a fallback when that service is down."),
+            ("AI for personalisation and anti-scam",
+             "Five trained models across four routers",
+             "Scope held. What changed is that each claim now has a baseline beside it, and "
+             "two of the five did not beat theirs."),
+            ("Google Maps for in-app navigation",
+             "No maps SDK; a placeholder key only",
+             "Deferred under time pressure. The route records carry no latitude or longitude, "
+             "so offline tiles were blocked by the data before they were blocked by time."),
+        ])
+    + '</div>'
+    + foot("Proposal against delivery, with reasons"))
+
+
+# ==========================================================================
+# additional figures
+# ==========================================================================
+add("fig41_pricecheck_flow", head(
+    "Chapter 5 · Anti-scam service",
+    "How One Quote Becomes a Verdict",
+    "The path a single price check takes, including every point where the "
+    "service is allowed to degrade rather than fail.")
+    + '<div class="body">'
+    + '<div class="row" style="margin-bottom:16px;align-items:stretch">'
+    + ''.join(
+        f'<div class="card fill solid" style="border-top:5px solid {c}">'
+        f'<div class="num" style="margin-bottom:9px">{i}</div>'
+        f'<h3 style="font-size:19.8px">{t}</h3><p style="font-size:15.5px">{d}</p></div>'
+        + ('<div class="arrow">&rarr;</div>' if i < 4 else '')
+        for i, (t, d, c) in enumerate([
+            ("Resolve the region",
+             "&ldquo;Everest&rdquo; has to find &ldquo;Everest/Khumbu&rdquo;. An unmatched "
+             "name used to drop the check silently.", TEAL),
+            ("Find a benchmark",
+             "Service, region and season first, then service and region, then the national "
+             "figure. The answer says which level replied.", AMBER),
+            ("Score the quote",
+             "The trained classifier returns a calibrated probability. It sees service, "
+             "region, season and price, and nothing about the person.", INDIGO),
+            ("Check the floor too",
+             "A quote far below the fair range raises the wage flag, because the floor of "
+             "that range is somebody's day of work.", CRIMSON),
+        ], start=1))
+    + '</div>'
+    + '<div class="grid3" style="margin-bottom:16px">'
+    + ''.join(
+        f'<div class="card" style="border-top:5px solid {c}">'
+        f'<div class="pill {p}">{v}</div><h3 style="margin-top:9px;font-size:19.8px">{t}</h3>'
+        f'<p style="font-size:15.5px">{d}</p></div>'
+        for v, p, t, d, c in [
+            ("Likely scam", "no", "Quote 5.7&times; the benchmark",
+             "Flagged with the ratio, the benchmark and the reason shown. The wording is "
+             "risk, never an accusation, and the traveller still decides.", CRIMSON),
+            ("Fair", "ok", "Quote within the range",
+             "Confirmed against the benchmark with the sample size behind it, so a fair "
+             "price is evidence rather than reassurance.", "#1F6B34"),
+            ("Below fair wage", "mid", "Porter quoted 900 against a 2,220 floor",
+             "The same transparency that catches an overcharge would otherwise help anchor "
+             "a guide or porter below their wage. This is the counterweight.", AMBER),
+        ])
+    + '</div>'
+    + '<div class="row">'
+    + '<div class="card fill dark"><h3>Every fallback, and what the traveller sees</h3>'
+      '<p><b style="color:#C8E58A">Model unreachable.</b> The deterministic benchmark rule '
+      'answers instead and the response is labelled <code style="background:#4E6B1E;'
+      'color:#EAF5D5">benchmark</code> rather than <code style="background:#4E6B1E;'
+      'color:#EAF5D5">ml</code>.</p>'
+      '<p><b style="color:#C8E58A">No local benchmark.</b> The analytics service is asked '
+      'anyway, because it keeps its own table.</p>'
+      '<p><b style="color:#C8E58A">Nothing available at all.</b> The check reports that it '
+      'could not be completed. It does not report &ldquo;fair&rdquo;.</p></div>'
+    + '<div class="card fill tint"><h3>The failure this design exists to avoid</h3>'
+      '<p>An earlier build returned a clean &ldquo;not a scam&rdquo; whenever the region '
+      'string did not match the catalogue exactly. A quote at nearly six times the going '
+      'rate came back looking safe.</p>'
+      '<p>Nothing was thrown and nothing was logged, so the test suite stayed green. It was '
+      'found by calling the running service by hand with a region name spelled the way a '
+      'person would spell it.</p>'
+      '<p><b class="hl">A safety feature that fails silently is worse than no safety '
+      'feature</b>, because the traveller has been told there is nothing to worry about.</p>'
+      '</div></div></div>'
+    + foot("The price-check decision path and its fallbacks"))
+
+
+add("fig42_requirements", head(
+    "Chapter 3 · Requirements engineering",
+    "From MoSCoW to Something That Can Be Checked",
+    "Requirements were prioritised once and then held to. What matters here "
+    "is that each one names the evidence that would settle it.")
+    + '<div class="body">'
+    + '<div class="grid4" style="margin-bottom:16px">'
+    + ''.join(
+        f'<div class="stat {k}"><b>{n}</b><span>{l}</span></div>'
+        for n, l, k in [
+            ("14", "must-haves, all delivered and verified", ""),
+            ("9", "should-haves, seven delivered", "t"),
+            ("6", "could-haves, two delivered", "a"),
+            ("4", "explicitly deferred, each recorded with a reason", "r"),
+        ])
+    + '</div>'
+    + '<table class="t" style="margin-bottom:16px"><tr>'
+      '<th style="width:120px">Priority</th><th>Requirement</th>'
+      '<th style="width:250px">Source</th><th style="width:290px">How it was verified</th></tr>'
+    + ''.join(
+        f'<tr><td><span class="pill {p}">{pr}</span></td><td><b class="hl">{r}</b></td>'
+        f'<td style="color:#6D766C">{s}</td><td style="color:#6D766C">{v}</td></tr>'
+        for pr, p, r, s, v in [
+            ("Must", "", "A traveller can register, sign in and hold a session",
+             "Every other requirement depends on it",
+             "End-to-end journey test issuing a real JWT"),
+            ("Must", "", "Guides and routes come from the verified registry",
+             "Akerlof (1970); the 2023 licensed-guide rule",
+             "Catalogue endpoints served from the ingested dataset"),
+            ("Must", "", "A quote can be checked against a fair benchmark",
+             "Xu et al. (2021) on tourist scams",
+             "Eleven tests, including region aliases and the unknown-region path"),
+            ("Must", "", "Recommendations are personalised and explained",
+             "Simon (1955); Rudin (2019) on interpretability",
+             "Held-out 2024 ranking against a popularity baseline"),
+            ("Should", "mid", "A traveller can plan and budget a whole trip",
+             "Observed planning behaviour in the desk study",
+             "Workspace endpoints with a budget summary test"),
+            ("Should", "mid", "Underpaid labour is flagged as loudly as overcharging",
+             "Graham et al. (2017) on platform labour",
+             "Fair-wage tests in both the core and analytics services"),
+            ("Could", "ink", "Offline map tiles for use without signal",
+             "Connectivity on trekking routes",
+             "Not delivered &mdash; route records carry no coordinates"),
+        ])
+    + '</table>'
+    + '<div class="row">'
+    + '<div class="card fill tint"><h3>Why the requirements were written this way</h3>'
+      '<p>ISO/IEC/IEEE 29148 asks that a requirement be verifiable, which in practice means '
+      'writing down what evidence would settle it before writing any code. Several early '
+      'requirements failed that test and had to be rewritten.</p>'
+      '<p>&ldquo;The app should give good recommendations&rdquo; cannot be checked. '
+      '&ldquo;Ranking beats a popularity baseline on held-out 2024 interactions&rdquo; can, '
+      'and it is also allowed to come out negative.</p></div>'
+    + '<div class="card fill"><h3>What prioritisation actually did</h3>'
+      '<p><b class="hl">It protected the research questions.</b> The must-haves are the '
+      'features RQ1 and RQ2 depend on. Admin screens were pushed back twice, and that was '
+      'the correct call both times.</p>'
+      '<p><b class="hl">It made the cuts visible.</b> Four could-haves fell away under time '
+      'pressure. Because they were classified in advance, dropping them is prioritisation '
+      'working rather than scope collapsing.</p></div>'
+    + '</div></div>'
+    + foot("Prioritised requirements and their verification evidence"))
 
 
 # ==========================================================================
@@ -2418,8 +2817,10 @@ def trim(path: Path, pad: int = 30) -> None:
 
 
 def render(only: str | None = None) -> None:
+    """Render every figure, or only those matching a comma-separated filter."""
+    wanted = [s.strip() for s in only.split(",")] if only else []
     for name, (html, w, h) in FIGS.items():
-        if only and only not in name:
+        if wanted and not any(s in name for s in wanted):
             continue
         src = BUILD / f"{name}.html"
         src.write_text(html, encoding="utf-8")
