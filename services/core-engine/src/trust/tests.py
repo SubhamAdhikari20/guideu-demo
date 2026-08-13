@@ -94,3 +94,52 @@ def test_unknown_service_degrades_gracefully(benchmarked_region):
     assert result.source == "unknown"
     assert result.is_likely_scam is False
     assert result.benchmark_price_npr is None
+    # An unchecked quote must not read as a verdict of "fair".
+    assert result.severity == "Unknown"
+
+
+@pytest.fixture
+def compound_region(db):
+    """The dataset writes compound region names; callers often use the short one."""
+    region = Region.objects.create(name="Everest/Khumbu", slug="everest-khumbu")
+    PricingBenchmark.objects.create(
+        external_id="PRC000010",
+        service_type="Licensed Guide",
+        region=region,
+        season="Peak (Autumn)",
+        fair_price_npr=4000,
+        min_fair_npr=3200,
+        max_fair_npr=4800,
+        unit="per day",
+    )
+    return region
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("alias", ["Everest/Khumbu", "Everest", "Khumbu", "everest"])
+def test_region_aliases_resolve_to_the_canonical_name(compound_region, alias):
+    """"Everest" must find "Everest/Khumbu" — otherwise the check silently does nothing."""
+    result = check_price(
+        service_type="Licensed Guide", region=alias, season="Peak (Autumn)", quoted_price_npr=20000
+    )
+    assert result.benchmark_price_npr == 4000
+    assert result.is_likely_scam is True
+
+
+@pytest.mark.django_db
+def test_unknown_region_falls_back_to_the_national_benchmark(compound_region):
+    """A region we do not recognise must not turn a 5x overcharge into "fair"."""
+    result = check_price(
+        service_type="Licensed Guide", region="Atlantis", season="Peak (Autumn)", quoted_price_npr=20000
+    )
+    assert result.benchmark_price_npr == 4000
+    assert result.is_likely_scam is True
+    assert any("across Nepal" in line for line in result.explanation)
+
+
+@pytest.mark.django_db
+def test_national_fallback_is_not_described_as_region_specific(compound_region):
+    result = check_price(
+        service_type="Licensed Guide", region="Atlantis", season="Peak (Autumn)", quoted_price_npr=4000
+    )
+    assert not any("Everest" in line for line in result.explanation)

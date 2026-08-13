@@ -51,10 +51,36 @@ def check_price(*, service_type: str, region: str | None, season: str | None, qu
     explanation: list[str] = []
 
     if benchmark is None:
-        explanation.append("No fair-price benchmark exists for this service yet.")
+        # No local sample for this service. The analytics-engine keeps its own
+        # benchmark table, so ask it before giving up — otherwise an unknown
+        # service silently answers "not a scam", which fails in the unsafe
+        # direction for the one feature that exists to warn people.
+        ml_only = get_analytics_client().score_scam(
+            service_type=service_type, region=region or "", season=season or "", quoted_price_npr=quoted_price_npr
+        )
+        if ml_only and "scam_probability" in ml_only:
+            explanation.append("No local benchmark for this service; scored by the anti-scam model.")
+            ml_ratio = ml_only.get("overcharge_ratio")
+            ml_severity = ml_only.get("severity") or (
+                classify_severity(ml_ratio) if ml_ratio is not None
+                else ("Likely Scam" if ml_only.get("is_likely_scam") else "Unknown")
+            )
+            return PriceCheckResult(
+                service_type=service_type, region=region, season=season, quoted_price_npr=quoted_price_npr,
+                benchmark_price_npr=ml_only.get("benchmark_price_npr"),
+                overcharge_ratio=ml_ratio,
+                is_likely_scam=bool(ml_only.get("is_likely_scam")), severity=ml_severity,
+                scam_probability=ml_only.get("scam_probability"), source="ml", explanation=explanation,
+                below_fair_wage=bool(ml_only.get("below_fair_wage")),
+                below_fair_range=bool(ml_only.get("below_fair_range")),
+                fair_wage_message=ml_only.get("fair_wage_message"),
+            )
+        explanation.append(
+            "No fair-price benchmark exists for this service yet, so this quote could not be checked."
+        )
         return PriceCheckResult(
             service_type=service_type, region=region, season=season, quoted_price_npr=quoted_price_npr,
-            benchmark_price_npr=None, overcharge_ratio=None, is_likely_scam=False, severity=None,
+            benchmark_price_npr=None, overcharge_ratio=None, is_likely_scam=False, severity="Unknown",
             scam_probability=None, source="unknown", explanation=explanation,
         )
 
@@ -62,7 +88,11 @@ def check_price(*, service_type: str, region: str | None, season: str | None, qu
     floor = benchmark["min_fair_npr"]
     ratio = round(quoted_price_npr / fair, 3) if fair else None
     severity = classify_severity(ratio) if ratio is not None else None
-    explanation.append(f"Fair benchmark is ~{fair} NPR (n={benchmark['sample_size']} samples).")
+    scope = {
+        "service+region+season": f"for {benchmark['region']} in {benchmark['season']}",
+        "service+region": f"for {benchmark['region']}",
+    }.get(benchmark.get("granularity", ""), "across Nepal")
+    explanation.append(f"Fair benchmark is ~{fair} NPR {scope} (n={benchmark['sample_size']} samples).")
     if ratio is not None:
         explanation.append(f"Quoted price is {ratio}x the fair benchmark.")
 
@@ -86,14 +116,20 @@ def check_price(*, service_type: str, region: str | None, season: str | None, qu
     )
     if ml and "scam_probability" in ml:
         explanation.append("Scored by the anti-scam model.")
+        # Either service raising the wage flag is enough to raise it — under-paying
+        # a guide or porter is the failure we would rather over-report than miss.
+        # The message itself comes from the local benchmark when we have one,
+        # because that is resolved to the region while the model may have fallen
+        # back to the national average. Mixing the two put two different
+        # shortfall figures in the same response.
         return PriceCheckResult(
             service_type=service_type, region=region, season=season, quoted_price_npr=quoted_price_npr,
             benchmark_price_npr=fair, overcharge_ratio=ratio, is_likely_scam=bool(ml.get("is_likely_scam")),
-            severity=ml.get("severity", severity), scam_probability=ml.get("scam_probability"),
+            severity=ml.get("severity") or severity, scam_probability=ml.get("scam_probability"),
             source="ml", explanation=explanation,
-            below_fair_wage=bool(ml.get("below_fair_wage", below_wage)),
-            below_fair_range=bool(ml.get("below_fair_range", below_range)),
-            fair_wage_message=ml.get("fair_wage_message") or wage_message,
+            below_fair_wage=bool(ml.get("below_fair_wage")) or below_wage,
+            below_fair_range=bool(ml.get("below_fair_range")) or below_range,
+            fair_wage_message=wage_message or ml.get("fair_wage_message"),
         )
 
     return PriceCheckResult(
