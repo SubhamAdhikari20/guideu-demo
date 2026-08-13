@@ -194,7 +194,7 @@ Three kinds of test were added in response, and each maps to a defect class:
 | Horizon assertions on the forecaster | A model being served outside the range its metrics describe |
 | Alias and unknown-value cases on lookups | Vocabulary drift between two services that share a dataset |
 
-Counts after this work: **39 core-engine tests, 15 analytics-engine tests**, up
+Counts after this work: **40 core-engine tests, 15 analytics-engine tests**, up
 from 26 and 14, with the increase concentrated on the wiring rather than on more
 unit coverage of already-working functions.
 
