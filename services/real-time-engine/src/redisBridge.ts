@@ -10,12 +10,14 @@ import {
   NotificationEvent,
   PaymentEvent,
   PermitEvent,
+  UserEvent,
 } from './types';
 
 export const rooms = {
   user: (id: number | string) => `user:${id}`,
   tourist: (id: number | string) => `tourist:${id}`,
   guide: (id: number | string) => `guide:${id}`,
+  admin: 'role:ADMIN',
   /**
    * Booking rooms are keyed by the booking's **primary key**, not its public
    * reference. That is what the Flutter app joins (`booking:${booking.id}`) and
@@ -43,6 +45,37 @@ function handlePermit(io: Server, ev: PermitEvent): void {
 
 function handleNotification(io: Server, ev: NotificationEvent): void {
   io.to(rooms.user(ev.user_id)).emit('notification:new', ev);
+}
+
+function handleUser(io: Server, ev: UserEvent): void {
+  // Account events contain platform-wide operational data, so only sockets
+  // authenticated as administrators join this room.
+  io.to(rooms.admin).emit('user:update', ev);
+}
+
+export function dispatchRedisEvent(io: Server, channel: string, raw: string): void {
+  let ev: DomainEvent;
+  try {
+    ev = JSON.parse(raw) as DomainEvent;
+  } catch (err) {
+    logger.warn('could not parse event', { channel, err: String(err) });
+    return;
+  }
+  logger.debug('event in', { channel, event: ev.event });
+  switch (channel) {
+    case CHANNELS.USER:
+      return handleUser(io, ev as UserEvent);
+    case CHANNELS.BOOKING:
+      return handleBooking(io, ev as BookingEvent);
+    case CHANNELS.PAYMENT:
+      return handlePayment(io, ev as PaymentEvent);
+    case CHANNELS.PERMIT:
+      return handlePermit(io, ev as PermitEvent);
+    case CHANNELS.NOTIFICATION:
+      return handleNotification(io, ev as NotificationEvent);
+    default:
+      logger.debug('unhandled channel', { channel });
+  }
 }
 
 /** How many times to retry the initial Redis connection before giving up. */
@@ -83,31 +116,8 @@ export async function startRedisBridge(io: Server): Promise<() => Promise<void>>
     return noop;
   }
 
-  const dispatch = (channel: string, raw: string): void => {
-    let ev: DomainEvent;
-    try {
-      ev = JSON.parse(raw) as DomainEvent;
-    } catch (err) {
-      logger.warn('could not parse event', { channel, err: String(err) });
-      return;
-    }
-    logger.debug('event in', { channel, event: ev.event });
-    switch (channel) {
-      case CHANNELS.BOOKING:
-        return handleBooking(io, ev as BookingEvent);
-      case CHANNELS.PAYMENT:
-        return handlePayment(io, ev as PaymentEvent);
-      case CHANNELS.PERMIT:
-        return handlePermit(io, ev as PermitEvent);
-      case CHANNELS.NOTIFICATION:
-        return handleNotification(io, ev as NotificationEvent);
-      default:
-        logger.debug('unhandled channel', { channel });
-    }
-  };
-
   const channels = [CHANNELS.BOOKING, CHANNELS.PAYMENT, CHANNELS.PERMIT, CHANNELS.NOTIFICATION, CHANNELS.USER];
-  await Promise.all(channels.map((ch) => subscriber.subscribe(ch, (msg) => dispatch(ch, msg))));
+  await Promise.all(channels.map((ch) => subscriber.subscribe(ch, (msg) => dispatchRedisEvent(io, ch, msg))));
   logger.info('subscribed to Redis event bus', { channels });
 
   return async () => {

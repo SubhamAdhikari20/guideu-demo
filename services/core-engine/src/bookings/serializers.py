@@ -156,7 +156,11 @@ class TravelServiceBookingSerializer(serializers.ModelSerializer):
     def validate(self, data: dict[str, Any]) -> dict[str, Any]:
         offering = data.get('offering')
         units = data.get('units', 1)
-        if offering and (not offering.is_active or offering.available_units < units):
+        travellers = data.get('travellers', 1)
+        required_inventory = (
+            units if offering and offering.service_type == TravelOffering.ServiceType.HOTEL else travellers
+        )
+        if offering and (not offering.is_active or offering.available_units < required_inventory):
             raise serializers.ValidationError({'offering': 'This service does not have enough availability.'})
         if offering and offering.service_type == TravelOffering.ServiceType.HOTEL:
             start, end = data.get('start_date'), data.get('end_date')

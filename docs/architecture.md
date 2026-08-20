@@ -42,7 +42,8 @@ PostgreSQL (ACID core)        MongoDB (flexible ML/event docs)
    (`guideu:booking.events`, `guideu:payment.events`, `guideu:permit.events`,
    `guideu:user.events`).
 4. `real-time-engine` is subscribed to those channels and pushes the update into
-   the relevant Socket.IO rooms (`tourist:<id>`, `guide:<id>`, `booking:<ref>`).
+   the relevant Socket.IO rooms (`tourist:<id>`, `guide:<id>`, `booking:<id>`,
+   and the administrator-only `role:ADMIN` room).
 5. For decisions that need ML (is this price a scam? what to recommend?), Django
    or the client calls `analytics-engine` over HTTP; the ML service serves a
    versioned model artifact.

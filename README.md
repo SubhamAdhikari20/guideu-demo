@@ -88,6 +88,13 @@ Seed a complete local demonstration with:
 make seed-demo
 ```
 
+With the Docker demo running, exercise the complete tourist, guide and
+administrator journey through public HTTP endpoints with:
+
+```bash
+make acceptance
+```
+
 | Role | Email | Password |
 | --- | --- | --- |
 | Tourist | `tourist@guideu.local` | `TouristDemo123!` |

@@ -40,6 +40,11 @@ export interface NotificationEvent extends DomainEvent {
   title: string;
 }
 
+export interface UserEvent extends DomainEvent {
+  user_id: number;
+  role: string;
+}
+
 /** Client→server payloads. */
 export interface ChatJoinPayload {
   room: string;

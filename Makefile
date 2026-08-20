@@ -88,3 +88,7 @@ down: ## Stop the stack
 .PHONY: demo
 demo: ## Start the Docker stack AND make it demonstrable (seed + admin token)
 	./scripts/demo_setup_docker.sh
+
+.PHONY: acceptance
+acceptance: ## Run the black-box tourist, guide and administrator demo against Docker
+	python scripts/live_acceptance.py

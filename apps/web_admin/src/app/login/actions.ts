@@ -47,7 +47,14 @@ export async function loginAction(formData: FormData) {
 
   if (error) redirect(`/login?error=${encodeURIComponent(error)}`);
   const cookieStore = await cookies();
-  const secure = process.env.NODE_ENV === 'production';
+  // Docker uses a production Next.js build even for the local HTTP demo. Tying
+  // Secure cookies to NODE_ENV therefore creates a successful-login loop: the
+  // browser stores no usable cookie for http://localhost and /dashboard sends
+  // the administrator straight back to /login. Deployment config states the
+  // transport requirement explicitly instead.
+  const secure = process.env.ADMIN_COOKIE_SECURE !== undefined
+    ? process.env.ADMIN_COOKIE_SECURE.toLowerCase() === 'true'
+    : process.env.NODE_ENV === 'production';
   cookieStore.set(ACCESS_COOKIE, access, { httpOnly: true, secure, sameSite: 'lax', path: '/', maxAge: 60 * 60 });
   cookieStore.set(REFRESH_COOKIE, refresh, { httpOnly: true, secure, sameSite: 'lax', path: '/', maxAge: 60 * 60 * 24 * 7 });
   redirect('/dashboard');

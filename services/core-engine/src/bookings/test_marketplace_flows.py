@@ -78,6 +78,25 @@ def test_travel_booking_total_is_server_owned_and_cancel_restores_inventory():
 
 
 @pytest.mark.django_db
+def test_transport_booking_cannot_oversell_passenger_inventory():
+    tourist = user('bus-passenger')
+    offering = TravelOffering.objects.create(
+        service_type=TravelOffering.ServiceType.BUS, provider_name='Test Bus',
+        title='Last Seat', origin='Kathmandu', destination='Pokhara',
+        unit_price=Decimal('1500.00'), capacity=1, available_units=1,
+    )
+    client = APIClient(); client.force_authenticate(tourist)
+    response = client.post('/api/v1/bookings/travel-service-bookings/', {
+        'offering': offering.id, 'start_date': '2027-01-10',
+        'travellers': 2, 'units': 1,
+    })
+    assert response.status_code == 400
+    assert response.data['error']['detail']['offering'][0] == 'This service does not have enough availability.'
+    offering.refresh_from_db()
+    assert offering.available_units == 1
+
+
+@pytest.mark.django_db
 def test_itinerary_is_not_visible_or_editable_across_users():
     owner = user('trip-owner')
     stranger = user('trip-stranger')

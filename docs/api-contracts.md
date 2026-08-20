@@ -31,6 +31,7 @@ HS256 secret and joins the socket to its identity rooms.
 | server→client | `payment:update` | mirror of `guideu:payment.events` |
 | server→client | `permit:update` | mirror of `guideu:permit.events` |
 | server→client | `notification:new` | mirror of `guideu:notification.events` |
+| server→client | `user:update` | mirror of `guideu:user.events`; administrator sockets only |
 | client→server | `chat:join` | `{ "room": "booking:<booking id>" }` |
 | client→server | `chat:message` | `{ "room": "booking:<booking id>", "body": "..." }` |
 | server→client | `chat:message` | `{ "room", "from", "body", "ts" }` |

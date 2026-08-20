@@ -25,6 +25,7 @@ function authMiddleware(socket: Socket, next: (err?: Error) => void): void {
 function joinIdentityRooms(socket: Socket, user: AuthedUser): void {
   socket.join(rooms.user(user.userId));
   if (user.role === 'GUIDE') socket.join(rooms.guide(user.userId));
+  else if (user.role === 'ADMIN') socket.join(rooms.admin);
   else socket.join(rooms.tourist(user.userId));
 }
 

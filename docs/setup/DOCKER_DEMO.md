@@ -28,6 +28,25 @@ When it finishes:
 
 The dashboard header should read **Services 3/3**.
 
+## Verify the complete live journey
+
+After the setup script finishes, run the repeatable black-box acceptance demo:
+
+```bash
+python scripts/live_acceptance.py
+# or: make acceptance
+```
+
+It creates fresh tourist and guide accounts and uses only the public HTTP
+surfaces. The run covers registration, login, administrator guide verification,
+settings, ML recommendations, anti-scam checks, on-demand guide offers, booking
+chat, eSewa/Khalti demo payments, escrow release, reviews, packages and
+itineraries, hotel/flight/bus inventory, refunds, the trip workspace, SOS,
+notifications, password reset, administrator APIs, and every protected Next.js
+administrator page. It exits non-zero on the first broken contract. Registration
+is intentionally throttled, so a repeated run waits for the API's `Retry-After`
+period when necessary.
+
 ## Demo accounts
 
 Created by `--with-demo-accounts`. Re-seeding always resets these passwords, so
@@ -225,7 +244,7 @@ from django.core.cache import cache; cache.clear(); print('cleared')"
 ## Administrator sessions expire
 
 The dashboard stores access and refresh tokens in HttpOnly cookies after a
-successful administrator login. The access token lasts 12 hours and the refresh
+successful administrator login. The access token lasts 60 minutes and the refresh
 token lasts 7 days by default. If the header reports an expired administrator
 session, sign in again at `/login`; the demo setup script does not write browser
 credentials or bearer tokens into `.env`.

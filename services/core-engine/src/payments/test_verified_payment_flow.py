@@ -9,6 +9,16 @@ from src.authentication.models import User
 from src.bookings.models import TravelOffering, TravelServiceBooking
 
 from src.payments.models import PaymentTransaction
+from src.payments.serializers import PaymentTransactionSerializer
+
+
+def test_server_owned_payment_fields_are_read_only():
+    serializer = PaymentTransactionSerializer()
+    for field in (
+        'amount', 'currency', 'status', 'gateway_reference', 'mode',
+        'checkout_url', 'expires_at', 'verified_at', 'failure_reason', 'created_at',
+    ):
+        assert serializer.fields[field].read_only, field
 
 
 @pytest.mark.django_db

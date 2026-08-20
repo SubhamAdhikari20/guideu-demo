@@ -338,7 +338,8 @@ class TravelServiceBookingViewSet(viewsets.ModelViewSet):
         offering = TravelOffering.objects.select_for_update().get(pk=serializer.validated_data['offering'].pk)
         units = serializer.validated_data.get('units', 1)
         travellers = serializer.validated_data.get('travellers', 1)
-        if not offering.is_active or offering.available_units < units:
+        required_inventory = units if offering.service_type == TravelOffering.ServiceType.HOTEL else travellers
+        if not offering.is_active or offering.available_units < required_inventory:
             raise ValidationError({'offering': 'This service has sold out.'})
         multiplier = units
         if offering.service_type == TravelOffering.ServiceType.HOTEL:
@@ -346,7 +347,7 @@ class TravelServiceBookingViewSet(viewsets.ModelViewSet):
         else:
             multiplier = travellers
         total = offering.unit_price * multiplier
-        offering.available_units -= units if offering.service_type == TravelOffering.ServiceType.HOTEL else travellers
+        offering.available_units -= required_inventory
         offering.save(update_fields=['available_units', 'updated_at'])
         serializer.save(
             tourist=self.request.user, reference=f'TS-{uuid.uuid4().hex[:10].upper()}',

@@ -19,16 +19,16 @@ class PaymentTransactionSerializer(serializers.ModelSerializer):
             'currency', 'status', 'gateway', 'gateway_reference', 'mode',
             'checkout_url', 'checkout_payload', 'expires_at', 'verified_at', 'failure_reason', 'created_at'
         )
+        read_only_fields = (
+            'amount', 'currency', 'status', 'gateway_reference', 'mode',
+            'checkout_url', 'expires_at', 'verified_at', 'failure_reason', 'created_at'
+        )
 
     def get_checkout_payload(self, obj: PaymentTransaction) -> dict[str, Any] | None:
         if obj.status != PaymentTransaction.Status.PENDING or not obj.gateway_metadata:
             return None
         fields = obj.gateway_metadata.get('form_fields')
         return fields if isinstance(fields, dict) else None
-        read_only_fields = (
-            'amount', 'currency', 'status', 'gateway_reference', 'mode',
-            'checkout_url', 'expires_at', 'verified_at', 'failure_reason', 'created_at'
-        )
 
     def validate(self, attrs: dict[str, Any]) -> dict[str, Any]:
         targets = [attrs.get('booking'), attrs.get('guide_request'), attrs.get('service_booking')]

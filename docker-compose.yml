@@ -176,9 +176,11 @@ services:
       ANALYTICS_ENGINE_URL: http://analytics-engine:8001
       ANALYTICS_API_KEY: ${ANALYTICS_API_KEY:-change-me-internal-service-token}
       ADMIN_API_TOKEN: ${ADMIN_API_TOKEN:-}
-      # Lets the dashboard mint a fresh access token when the 12h one lapses,
-      # instead of every page going blank until the setup script is re-run.
+      # Lets the dashboard mint a fresh access token when the short-lived one lapses.
       ADMIN_REFRESH_TOKEN: ${ADMIN_REFRESH_TOKEN:-}
+      # The local Docker demo is served over plain HTTP. Production overrides
+      # this to true so browsers only send administrator cookies over HTTPS.
+      ADMIN_COOKIE_SECURE: "false"
     ports:
       - "3000:3000"
     depends_on:

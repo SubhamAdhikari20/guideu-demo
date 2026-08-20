@@ -177,6 +177,78 @@ says which benchmark it used.
 
 ---
 
+## 8. Administrator login succeeded and immediately returned to login
+
+**Symptom.** Valid administrator credentials worked at the token endpoint, but
+the local Docker dashboard redirected back to `/login`.
+
+**Root cause.** The dashboard is a production Next.js build even in the local
+plain-HTTP demo. Cookie security was derived from `NODE_ENV=production`, so the
+browser would not send its `Secure` session cookies over `http://localhost`.
+
+**Fix.** Cookie transport is now an explicit deployment setting. Local Compose
+sets `ADMIN_COOKIE_SECURE=false`; production Compose forces it to `true`. The
+black-box acceptance demo submits the real Next.js server-action form and then
+renders all protected administrator pages with the resulting cookie jar.
+
+---
+
+## 9. Payment lifecycle fields were accidentally writable
+
+**Root cause.** `read_only_fields` was indented inside
+`get_checkout_payload()`, after its return statement, rather than inside the
+serializer's `Meta` class. The server still overwrote several values in its
+view, but the public API contract and generated schema incorrectly invited
+clients to supply amount, currency, status, provider references and mode.
+
+**Fix.** The declaration is back in `Meta`. A serializer regression test and the
+live demo both submit forged server-owned values and assert that the price,
+currency, state and payment mode come from GuideU.
+
+---
+
+## 10. A transport booking could sell more seats than existed
+
+**Symptom.** A two-passenger bus or flight booking could pass validation when
+only one seat remained, then attempt to store negative availability.
+
+**Root cause.** Availability was checked against `units` but decremented by
+`travellers`. Those mean the same thing for neither buses nor flights.
+
+**Fix.** Hotels reserve room units; buses and flights reserve traveller seats.
+The serializer and the locked transactional re-check now use the same computed
+inventory quantity. A one-seat/two-passenger regression test verifies that the
+request is rejected and stock stays unchanged.
+
+---
+
+## 11. The gateway health probe was routed to Next.js
+
+**Symptom.** The core service answered `/healthz/`, but nginx redirected
+`/healthz/` and ultimately returned the administrator site's 404 page.
+
+**Fix.** Exact nginx locations for both `/healthz` and `/healthz/` proxy to the
+core health endpoint. Both forms are exercised by the live acceptance demo and
+the running nginx configuration is checked with `nginx -t`.
+
+---
+
+## 12. Realtime subscribed to account events and discarded them
+
+**Symptom.** Every registration produced `unhandled channel:
+guideu:user.events` in the realtime service logs.
+
+**Root cause.** The channel was included in the Redis subscriptions but omitted
+from the dispatch switch. Administrator sockets were also falling through into
+tourist identity rooms.
+
+**Fix.** Administrator sockets now join `role:ADMIN`, and user events fan out as
+`user:update` only to that room. Transport tests verify both the private target
+and malformed-message resilience; a repeated live run leaves no unhandled event
+or application-error log entries.
+
+---
+
 ## What this says about the testing approach
 
 The thesis already notes that automated coverage was thin. This exercise shows
@@ -193,10 +265,13 @@ Three kinds of test were added in response, and each maps to a defect class:
 | Client-patched integration tests | Behaviour differences between the ML path and the fallback path |
 | Horizon assertions on the forecaster | A model being served outside the range its metrics describe |
 | Alias and unknown-value cases on lookups | Vocabulary drift between two services that share a dataset |
+| Black-box HTTP acceptance journey | Cross-role auth, payments, inventory, refunds, ML, safety and rendered admin pages |
+| Redis bridge dispatch tests | Published channels that are subscribed but silently discarded |
 
-Counts after this work: **40 core-engine tests, 15 analytics-engine tests**, up
-from 26 and 14, with the increase concentrated on the wiring rather than on more
-unit coverage of already-working functions.
+Counts after this work: **59 core-engine tests, 18 analytics-engine tests, 13
+realtime tests and 27 Flutter tests**, with the increase concentrated on wiring
+and complete workflow contracts rather than more unit coverage of
+already-working functions.
 
 One more pattern worth naming, because defects 5 and 7 share it. Both were
 fallbacks doing their job so well that a real fault produced a calm, plausible,
