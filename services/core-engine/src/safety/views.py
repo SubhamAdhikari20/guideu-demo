@@ -23,6 +23,8 @@ class SosAlertViewSet(
     filterset_fields = ("status",)
 
     def get_queryset(self):
+        if getattr(self, 'swagger_fake_view', False):
+            return SosAlert.objects.none()
         user = self.request.user
         qs = SosAlert.objects.select_related("user")
         if user.is_authenticated and user.is_staff:

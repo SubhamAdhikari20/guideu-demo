@@ -1,7 +1,7 @@
 import { Activity } from 'lucide-react';
 
 import { ServiceStatusPopover, type ServiceState } from './service-status-popover';
-import { coreGet, hasAdminToken, mlGet } from '@/lib/api/server';
+import { adminTokenStatus, coreGet, mlGet } from '@/lib/api/server';
 
 interface Health {
   status?: string;
@@ -17,10 +17,17 @@ interface Health {
  * and "the ML is working" look identical from the outside.
  */
 export async function ServiceStatus() {
-  const [health, catalog] = await Promise.all([
+  const [health, catalog, tokenState] = await Promise.all([
     mlGet<Health>('/health'),
     coreGet<{ count?: number }>('/catalog/regions/?page_size=1'),
+    adminTokenStatus(),
   ]);
+
+  const TOKEN_DETAIL: Record<typeof tokenState, string> = {
+    active: 'Authenticated administrator session; moderation actions enabled',
+    expired: 'Administrator session expired; sign in again',
+    missing: 'No administrator session',
+  };
 
   const services: ServiceState[] = [
     {
@@ -36,11 +43,9 @@ export async function ServiceStatus() {
       online: Boolean(health),
     },
     {
-      name: 'staff token',
-      detail: hasAdminToken
-        ? 'Configured — moderation actions enabled'
-        : 'Not set — moderation actions are read-only (set ADMIN_API_TOKEN)',
-      online: hasAdminToken,
+      name: 'admin session',
+      detail: TOKEN_DETAIL[tokenState],
+      online: tokenState === 'active',
     },
   ];
 

@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 
+import '../../../../core/error/api_error_mapper.dart';
 import '../../../../core/error/failures.dart';
 import '../../domain/entities/booking.dart';
 import '../../domain/entities/tour_package.dart';
@@ -17,7 +18,7 @@ class BookingRepositoryImpl implements BookingRepository {
       final models = await _remote.getPackages(search: search);
       return (null, models.map((m) => m.toEntity()).toList());
     } on DioException catch (e) {
-      return (_mapError(e, 'Could not load tour packages.'), null);
+      return (mapDioError(e, fallback: 'Could not load tour packages.'), null);
     } catch (e) {
       return (ServerFailure(e.toString()), null);
     }
@@ -39,7 +40,7 @@ class BookingRepositoryImpl implements BookingRepository {
       );
       return (null, model.toEntity());
     } on DioException catch (e) {
-      return (_mapError(e, 'Could not create the booking.'), null);
+      return (mapDioError(e, fallback: 'Could not create the booking.'), null);
     } catch (e) {
       return (ServerFailure(e.toString()), null);
     }
@@ -51,7 +52,7 @@ class BookingRepositoryImpl implements BookingRepository {
       final models = await _remote.getMyBookings();
       return (null, models.map((m) => m.toEntity()).toList());
     } on DioException catch (e) {
-      return (_mapError(e, 'Could not load your bookings.'), null);
+      return (mapDioError(e, fallback: 'Could not load your bookings.'), null);
     } catch (e) {
       return (ServerFailure(e.toString()), null);
     }
@@ -63,31 +64,10 @@ class BookingRepositoryImpl implements BookingRepository {
       final model = await _remote.cancelBooking(bookingId);
       return (null, model.toEntity());
     } on DioException catch (e) {
-      return (_mapError(e, 'Could not cancel the booking.'), null);
+      return (mapDioError(e, fallback: 'Could not cancel the booking.'), null);
     } catch (e) {
       return (ServerFailure(e.toString()), null);
     }
   }
 
-  Failure _mapError(DioException e, String fallback) {
-    if (e.type == DioExceptionType.connectionError ||
-        e.type == DioExceptionType.connectionTimeout ||
-        e.type == DioExceptionType.receiveTimeout) {
-      return const NetworkFailure();
-    }
-    final code = e.response?.statusCode;
-    final data = e.response?.data;
-    var message = fallback;
-    if (data is Map) {
-      if (data['detail'] is String) {
-        message = data['detail'] as String;
-      } else if (data.isNotEmpty) {
-        final firstVal = data.values.first;
-        message = firstVal is List && firstVal.isNotEmpty
-            ? firstVal.first.toString()
-            : firstVal.toString();
-      }
-    }
-    return ServerFailure(message, statusCode: code);
-  }
 }

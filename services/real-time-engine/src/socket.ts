@@ -4,6 +4,7 @@ import { verifyToken } from './auth';
 import { persistMessage } from './chatHistory';
 import { logger } from './logger';
 import { rooms } from './redisBridge';
+import { authorizeRoom } from './roomAuthorization';
 import { AvailabilityPayload, ChatJoinPayload, ChatMessagePayload, AuthedUser } from './types';
 
 const PRESENCE_ROOM = 'presence';
@@ -39,9 +40,17 @@ export function attachSocketHandlers(io: Server): void {
     socket.on('presence:subscribe', () => socket.join(PRESENCE_ROOM));
 
     // --- Chat: room-scoped messaging (e.g. tourist <-> guide for a booking) ---
-    socket.on('chat:join', ({ room }: ChatJoinPayload) => {
-      if (typeof room !== 'string' || !room.startsWith('booking:')) {
+    socket.on('chat:join', async ({ room }: ChatJoinPayload) => {
+      const supportedRoom =
+        typeof room === 'string' &&
+        (room.startsWith('booking:') || room.startsWith('guide-request:'));
+      if (!supportedRoom) {
         socket.emit('error:message', { detail: 'Invalid chat room.' });
+        return;
+      }
+      const authorized = await authorizeRoom(socket.data.token as string, room);
+      if (!authorized) {
+        socket.emit('error:message', { detail: 'You are not allowed to join this chat room.' });
         return;
       }
       socket.join(room);
@@ -66,6 +75,10 @@ export function attachSocketHandlers(io: Server): void {
 
     // --- Guide availability (live) ---
     socket.on('guide:availability', ({ available }: AvailabilityPayload) => {
+      if (user.role !== 'GUIDE') {
+        socket.emit('error:message', { detail: 'Only guides can update availability.' });
+        return;
+      }
       io.to(PRESENCE_ROOM).emit('guide:availability', {
         user_id: user.userId,
         available: Boolean(available),

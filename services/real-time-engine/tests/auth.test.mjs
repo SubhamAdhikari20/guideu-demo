@@ -19,9 +19,16 @@ import { rooms } from '../dist/redisBridge.js';
 
 const sign = (payload) => jwt.sign(payload, config.jwtSecret, { algorithm: 'HS256' });
 
-test('the default JWT secret matches Django\'s development SECRET_KEY', () => {
+test('the JWT secret resolves to whatever Django signs with', () => {
+  // The invariant is "this service and Django agree", not "the secret is the
+  // fallback". config.ts loads the repo-root .env, so when that file sets a
+  // secret the resolved value is legitimately not the fallback — asserting the
+  // fallback unconditionally made this pass in CI and fail on any machine with
+  // a populated .env.
+  const configured = process.env.REALTIME_JWT_SECRET ?? process.env.DJANGO_SECRET_KEY;
+  const expected = configured ?? 'insecure-development-key-change-in-production';
   // If these drift apart again, every socket handshake fails as "invalid token".
-  assert.equal(config.jwtSecret, 'insecure-development-key-change-in-production');
+  assert.equal(config.jwtSecret, expected);
 });
 
 test('accepts a SimpleJWT token whose user_id is a string', () => {

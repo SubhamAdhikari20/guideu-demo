@@ -12,4 +12,5 @@ abstract interface class PaymentRepository {
 
   /// Confirms a payment (stands in for the gateway success callback).
   Future<(Failure?, Payment?)> confirm(int paymentId);
+  Future<(Failure?, Payment?)> verify(int paymentId);
 }

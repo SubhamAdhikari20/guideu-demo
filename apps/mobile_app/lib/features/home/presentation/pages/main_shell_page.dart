@@ -1,28 +1,36 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../app/theme/app_colors.dart';
 import '../../../destinations/presentation/pages/explore_page.dart';
 import '../../../festivals/presentation/pages/festival_hub_page.dart';
 import '../../../guides/presentation/pages/guides_page.dart';
+import '../../../guide_portal/presentation/pages/guide_shell_page.dart';
 import '../../../profile/presentation/pages/profile_page.dart';
+import '../../../auth/presentation/providers/auth_providers.dart';
+import '../../../auth/presentation/providers/auth_state.dart';
 import 'home_page.dart';
 
 /// The signed-in shell: a bottom navigation bar over the Home, Explore, Guides
 /// and Profile tabs. Tabs keep their state via an [IndexedStack].
-class MainShellPage extends StatefulWidget {
+class MainShellPage extends ConsumerStatefulWidget {
   const MainShellPage({super.key});
 
   @override
-  State<MainShellPage> createState() => _MainShellPageState();
+  ConsumerState<MainShellPage> createState() => _MainShellPageState();
 }
 
-class _MainShellPageState extends State<MainShellPage> {
+class _MainShellPageState extends ConsumerState<MainShellPage> {
   int _index = 0;
 
   void _goTo(int index) => setState(() => _index = index);
 
   @override
   Widget build(BuildContext context) {
+    final auth = ref.watch(authControllerProvider);
+    if (auth is AuthAuthenticated && auth.user.isGuide) {
+      return const GuideShellPage();
+    }
     final pages = [
       HomePage(
         onSeeExplore: () => _goTo(1),

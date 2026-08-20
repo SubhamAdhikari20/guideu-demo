@@ -49,6 +49,8 @@ dependencies:
   cached_network_image: ^3.4.1
   # i18n / formatting
   intl: ^0.20.3
+  # Provider-hosted eSewa/Khalti sandbox checkout; credentials remain server-side.
+  webview_flutter: ^4.13.0
 
 dev_dependencies:
   flutter_test:

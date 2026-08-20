@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as DjangoUserAdmin
 
-from .models import GuideProfile, Language, TouristProfile, User
+from .models import GuideProfile, Language, TouristProfile, User, UserPreferences
 
 
 @admin.register(User)
@@ -14,8 +14,8 @@ class UserAdmin(DjangoUserAdmin):
 
 @admin.register(GuideProfile)
 class GuideProfileAdmin(admin.ModelAdmin):
-    list_display = ('user', 'license_number', 'created_at')
-    list_filter = ('languages',)
+    list_display = ('user', 'license_number', 'availability', 'daily_rate_npr', 'created_at')
+    list_filter = ('availability', 'languages')
     search_fields = ('user__username', 'license_number')
     readonly_fields = ('created_at', 'updated_at')
 
@@ -31,3 +31,9 @@ class TouristProfileAdmin(admin.ModelAdmin):
 class LanguageAdmin(admin.ModelAdmin):
     list_display = ('name',)
     search_fields = ('name',)
+
+
+@admin.register(UserPreferences)
+class UserPreferencesAdmin(admin.ModelAdmin):
+    list_display = ('user', 'language', 'currency', 'theme', 'push_notifications')
+    list_filter = ('language', 'currency', 'theme', 'push_notifications')

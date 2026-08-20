@@ -12,7 +12,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import { asList, coreGet, hasAdminToken } from '@/lib/api/server';
+import { adminTokenStatus, asList, coreGet } from '@/lib/api/server';
 
 import { ReportRowActions } from './report-row-actions';
 import type { ScamReport } from './types';
@@ -34,8 +34,14 @@ const STATUS_VARIANT: Record<string, 'default' | 'secondary' | 'outline'> = {
 };
 
 export default async function ScamReportsPage() {
-  const page = await coreGet<unknown>('/trust/scam-reports/?ordering=-created_at&page_size=50');
+  const [page, tokenState] = await Promise.all([
+    coreGet<unknown>('/trust/scam-reports/?ordering=-created_at&page_size=50'),
+    adminTokenStatus(),
+  ]);
   const reports = asList<ScamReport>(page);
+  // "Configured" is not "working": an expired token reads and writes exactly as
+  // badly as a missing one, so both must disable the actions.
+  const canModerate = tokenState === 'active';
 
   const pending = reports.filter((r) => r.status === 'SUBMITTED').length;
 
@@ -51,16 +57,29 @@ export default async function ScamReportsPage() {
         }
       />
 
-      {!hasAdminToken && (
+      {!canModerate && (
         <Card className="border-amber-500/40 bg-amber-500/5 mb-4">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-base">
               <Info className="size-4" /> Read-only mode
             </CardTitle>
             <CardDescription>
-              No staff token is configured, so moderation actions are disabled. Set{' '}
-              <code className="bg-muted rounded px-1 py-0.5 text-xs">ADMIN_API_TOKEN</code> to an
-              admin JWT to verify or dismiss reports.
+              {tokenState === 'expired' ? (
+                <>
+                  The staff token has expired, so this page cannot read reports and moderation
+                  is disabled. Re-run{' '}
+                  <code className="bg-muted rounded px-1 py-0.5 text-xs">
+                    ./scripts/demo_setup_docker.sh
+                  </code>{' '}
+                  to mint a fresh one.
+                </>
+              ) : (
+                <>
+                  No staff token is configured, so moderation actions are disabled. Set{' '}
+                  <code className="bg-muted rounded px-1 py-0.5 text-xs">ADMIN_API_TOKEN</code> to
+                  an admin JWT to verify or dismiss reports.
+                </>
+              )}
             </CardDescription>
           </CardHeader>
         </Card>
@@ -77,9 +96,9 @@ export default async function ScamReportsPage() {
         <CardContent>
           {reports.length === 0 ? (
             <p className="text-muted-foreground rounded-lg border border-dashed p-8 text-center text-sm">
-              {hasAdminToken
+              {canModerate
                 ? 'No scam reports have been submitted yet.'
-                : 'No reports could be read. This endpoint needs a staff token.'}
+                : 'No reports could be read. This endpoint needs a valid staff token.'}
             </p>
           ) : (
             <div className="overflow-x-auto">
@@ -132,7 +151,7 @@ export default async function ScamReportsPage() {
                         </Badge>
                       </TableCell>
                       <TableCell>
-                        <ReportRowActions report={report} canModerate={hasAdminToken} />
+                        <ReportRowActions report={report} canModerate={canModerate} />
                       </TableCell>
                     </TableRow>
                   ))}

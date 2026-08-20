@@ -18,6 +18,7 @@ import {
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
@@ -50,19 +51,24 @@ export function ModelRowActions({ model }: { model: ModelCard }) {
           }
         />
         <DropdownMenuContent align="end">
-          <DropdownMenuLabel>{model.name}</DropdownMenuLabel>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem onClick={() => setOpen(true)}>
-            <Eye className="size-4" /> View model card
-          </DropdownMenuItem>
-          <DropdownMenuItem
-            onClick={() => {
-              navigator.clipboard.writeText(model.version);
-              toast.success('Version copied', { description: model.version });
-            }}
-          >
-            <Copy className="size-4" /> Copy version
-          </DropdownMenuItem>
+          {/* The label is a Base UI GroupLabel: it reads its group from context and
+              throws if there is no <DropdownMenuGroup> above it, which takes the
+              whole page down with it. Keep label and items inside one group. */}
+          <DropdownMenuGroup>
+            <DropdownMenuLabel>{model.name}</DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={() => setOpen(true)}>
+              <Eye className="size-4" /> View model card
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() => {
+                void navigator.clipboard?.writeText(model.version);
+                toast.success('Version copied', { description: model.version });
+              }}
+            >
+              <Copy className="size-4" /> Copy version
+            </DropdownMenuItem>
+          </DropdownMenuGroup>
         </DropdownMenuContent>
       </DropdownMenu>
 

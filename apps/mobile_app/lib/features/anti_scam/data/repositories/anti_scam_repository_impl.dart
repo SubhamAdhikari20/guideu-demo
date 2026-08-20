@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 
+import '../../../../core/error/api_error_mapper.dart';
 import '../../../../core/error/failures.dart';
 import '../../domain/entities/price_check_result.dart';
 import '../../domain/repositories/anti_scam_repository.dart';
@@ -26,7 +27,7 @@ class AntiScamRepositoryImpl implements AntiScamRepository {
       );
       return (null, model.toEntity());
     } on DioException catch (e) {
-      return (_mapError(e), null);
+      return (mapDioError(e), null);
     } catch (e) {
       return (ServerFailure(e.toString()), null);
     }
@@ -50,7 +51,7 @@ class AntiScamRepositoryImpl implements AntiScamRepository {
       );
       return (null, true);
     } on DioException catch (e) {
-      return (_mapError(e), null);
+      return (mapDioError(e), null);
     } catch (e) {
       return (ServerFailure(e.toString()), null);
     }
@@ -61,23 +62,10 @@ class AntiScamRepositoryImpl implements AntiScamRepository {
     try {
       return (null, await _remote.getRegionNames());
     } on DioException catch (e) {
-      return (_mapError(e), null);
+      return (mapDioError(e), null);
     } catch (e) {
       return (ServerFailure(e.toString()), null);
     }
   }
 
-  Failure _mapError(DioException e) {
-    if (e.type == DioExceptionType.connectionError ||
-        e.type == DioExceptionType.connectionTimeout ||
-        e.type == DioExceptionType.receiveTimeout) {
-      return const NetworkFailure();
-    }
-    final data = e.response?.data;
-    var message = 'Could not complete the request. Please try again.';
-    if (data is Map && data['detail'] is String) {
-      message = data['detail'] as String;
-    }
-    return ServerFailure(message, statusCode: e.response?.statusCode);
-  }
 }

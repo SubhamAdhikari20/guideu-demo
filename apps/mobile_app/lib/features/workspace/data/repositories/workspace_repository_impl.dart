@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 
+import '../../../../core/error/api_error_mapper.dart';
 import '../../../../core/error/failures.dart';
 import '../../domain/entities/trip.dart';
 import '../../domain/repositories/workspace_repository.dart';
@@ -63,15 +64,7 @@ class WorkspaceRepositoryImpl implements WorkspaceRepository {
     try {
       return (null, await run());
     } on DioException catch (e) {
-      if (e.type == DioExceptionType.connectionError ||
-          e.type == DioExceptionType.connectionTimeout ||
-          e.type == DioExceptionType.receiveTimeout) {
-        return (const NetworkFailure(), null);
-      }
-      final data = e.response?.data;
-      var message = 'Something went wrong. Please try again.';
-      if (data is Map && data['detail'] is String) message = data['detail'] as String;
-      return (ServerFailure(message, statusCode: e.response?.statusCode), null);
+      return (mapDioError(e), null);
     } catch (e) {
       return (ServerFailure(e.toString()), null);
     }

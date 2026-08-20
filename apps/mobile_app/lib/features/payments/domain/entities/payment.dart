@@ -18,6 +18,9 @@ class Payment {
     required this.currency,
     required this.status,
     required this.gateway,
+    required this.mode,
+    this.checkoutUrl,
+    this.checkoutPayload,
   });
 
   final int id;
@@ -26,6 +29,10 @@ class Payment {
   final String currency;
   final String status; // PENDING | SUCCESS | FAILED | REFUNDED
   final String gateway;
+  final String mode;
+  final String? checkoutUrl;
+  final Map<String, dynamic>? checkoutPayload;
 
   bool get isSuccess => status.toUpperCase() == 'SUCCESS';
+  bool get requiresProviderCheckout => mode != 'demo' && !isSuccess && checkoutUrl != null;
 }

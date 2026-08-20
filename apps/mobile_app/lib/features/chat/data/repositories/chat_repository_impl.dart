@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 
+import '../../../../core/error/api_error_mapper.dart';
 import '../../../../core/error/failures.dart';
 import '../../domain/entities/chat_message.dart';
 import '../../domain/entities/chat_thread.dart';
@@ -16,7 +17,7 @@ class ChatRepositoryImpl implements ChatRepository {
     try {
       return (null, await _remote.getThreads());
     } on DioException catch (e) {
-      return (_mapError(e), null);
+      return (mapDioError(e), null);
     } catch (e) {
       return (ServerFailure(e.toString()), null);
     }
@@ -27,18 +28,10 @@ class ChatRepositoryImpl implements ChatRepository {
     try {
       return (null, await _remote.getHistory(room));
     } on DioException catch (e) {
-      return (_mapError(e), null);
+      return (mapDioError(e), null);
     } catch (e) {
       return (ServerFailure(e.toString()), null);
     }
   }
 
-  Failure _mapError(DioException e) {
-    if (e.type == DioExceptionType.connectionError ||
-        e.type == DioExceptionType.connectionTimeout ||
-        e.type == DioExceptionType.receiveTimeout) {
-      return const NetworkFailure();
-    }
-    return ServerFailure('Could not load messages.', statusCode: e.response?.statusCode);
-  }
 }

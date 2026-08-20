@@ -22,6 +22,8 @@ class UserEventViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.
     ordering_fields = ("created_at",)
 
     def get_queryset(self):
+        if getattr(self, 'swagger_fake_view', False):
+            return UserEvent.objects.none()
         user = self.request.user
         qs = UserEvent.objects.all()
         if user.is_authenticated and user.is_staff:

@@ -48,10 +48,7 @@ class BookingRemoteDataSource {
   }
 
   Future<BookingModel> cancelBooking(int bookingId) async {
-    final resp = await _dio.patch(
-      '${ApiEndpoints.bookings}$bookingId/',
-      data: <String, dynamic>{'status': 'CANCELLED'},
-    );
+    final resp = await _dio.post('${ApiEndpoints.bookings}$bookingId/cancel/');
     return BookingModel.fromJson(resp.data as Map<String, dynamic>);
   }
 

@@ -5,8 +5,8 @@ from .models import PaymentTransaction, EscrowLedger
 
 @admin.register(PaymentTransaction)
 class PaymentTransactionAdmin(admin.ModelAdmin):
-    list_display = ('id', 'user', 'booking', 'amount', 'currency', 'status', 'gateway', 'gateway_reference', 'created_at')
-    list_filter = ('status', 'gateway')
+    list_display = ('id', 'user', 'booking', 'guide_request', 'service_booking', 'amount', 'currency', 'status', 'gateway', 'mode', 'created_at')
+    list_filter = ('status', 'gateway', 'mode')
     search_fields = ('gateway_reference', 'user__username')
     readonly_fields = ('created_at', 'updated_at')
 

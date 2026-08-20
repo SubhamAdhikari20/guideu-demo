@@ -33,6 +33,10 @@ migrate: ## Make + apply Django migrations
 seed: ## Ingest the Travel Planning synthetic dataset into the core DB (path auto-resolved)
 	cd $(CORE) && uv run python manage.py seed_from_dataset
 
+.PHONY: seed-demo
+seed-demo: ## Seed catalog, demo users, guide requests, travel inventory and moderation data
+	cd $(CORE) && uv run python manage.py seed_from_dataset --with-demo-accounts --with-demo-bookings --with-demo-scam-reports
+
 .PHONY: superuser
 superuser: ## Create a Django superuser
 	cd $(CORE) && uv run python manage.py createsuperuser
@@ -64,6 +68,9 @@ realtime: ## Run the Node real-time-engine in watch mode
 test: ## Run the test suites
 	cd $(CORE) && uv run pytest
 	cd $(ANALYTICS) && uv run pytest
+	cd $(REALTIME) && npm test
+	cd apps/web_admin && npm run lint && npm run build
+	cd apps/mobile_app && flutter analyze && flutter test
 
 .PHONY: lint
 lint: ## Lint TypeScript
@@ -77,3 +84,7 @@ up: ## Start the full stack with Docker Compose
 .PHONY: down
 down: ## Stop the stack
 	docker compose down
+
+.PHONY: demo
+demo: ## Start the Docker stack AND make it demonstrable (seed + admin token)
+	./scripts/demo_setup_docker.sh

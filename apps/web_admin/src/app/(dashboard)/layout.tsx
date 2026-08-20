@@ -4,10 +4,15 @@ import { ThemeToggle } from '@/components/layout/theme-toggle';
 import { ServiceStatus } from '@/components/common/service-status';
 import { Separator } from '@/components/ui/separator';
 import { SidebarInset, SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
+import { Button } from '@/components/ui/button';
+import { requireAdmin } from '@/lib/auth';
+import { logoutAction } from '@/app/login/actions';
+import { LogOut } from 'lucide-react';
 
-export default function DashboardLayout({
+export default async function DashboardLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
+  const admin = await requireAdmin();
   return (
     <SidebarProvider>
       <AppSidebar />
@@ -19,8 +24,10 @@ export default function DashboardLayout({
             <PageBreadcrumb />
           </div>
           <div className="flex items-center gap-2 px-4">
+            <span className="text-muted-foreground hidden text-xs md:inline">{admin.first_name || admin.email}</span>
             <ServiceStatus />
             <ThemeToggle />
+            <form action={logoutAction}><Button type="submit" size="icon" variant="ghost" aria-label="Sign out"><LogOut className="size-4" /></Button></form>
           </div>
         </header>
         <main className="flex flex-1 flex-col gap-4 p-4 md:p-6">{children}</main>

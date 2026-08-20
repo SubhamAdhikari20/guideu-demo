@@ -14,6 +14,9 @@ abstract interface class AuthRepository {
     required String email,
     required String password,
     String? phoneNumber,
+    required String role,
+    String? licenseNumber,
+    String? bio,
   });
 
   Future<(Failure?, AuthUser?)> currentUser();

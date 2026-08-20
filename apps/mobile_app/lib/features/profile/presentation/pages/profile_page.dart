@@ -8,6 +8,12 @@ import '../../../bookings/presentation/pages/my_bookings_page.dart';
 import '../../../currency/presentation/pages/currency_converter_page.dart';
 import '../../../safety/presentation/widgets/sos_sheet.dart';
 import '../../../workspace/presentation/pages/workspaces_list_page.dart';
+import '../../../notifications/presentation/pages/notifications_page.dart';
+import '../../../travel_services/presentation/pages/my_travel_bookings_page.dart';
+import '../../../guide_requests/presentation/pages/guide_requests_page.dart';
+import 'security_page.dart';
+import 'settings_page.dart';
+import 'edit_profile_page.dart';
 
 /// Profile tab — shows the signed-in user and lets them log out.
 class ProfilePage extends ConsumerWidget {
@@ -61,12 +67,29 @@ class ProfilePage extends ConsumerWidget {
           ),
           const SizedBox(height: 24),
           _Tile(
+            icon: Icons.edit_outlined,
+            label: 'Edit Profile',
+            onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const EditProfilePage())),
+          ),
+          _Tile(
             icon: Icons.receipt_long_outlined,
             label: 'My Bookings',
             onTap: () => Navigator.of(context).push(
               MaterialPageRoute(builder: (_) => const MyBookingsPage()),
             ),
           ),
+          if (user?.isTourist == true) ...[
+            _Tile(
+              icon: Icons.hiking_outlined,
+              label: 'Guide Requests',
+              onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const GuideRequestsPage())),
+            ),
+            _Tile(
+              icon: Icons.confirmation_number_outlined,
+              label: 'Travel Bookings',
+              onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const MyTravelBookingsPage())),
+            ),
+          ],
           _Tile(
             icon: Icons.map_outlined,
             label: 'My Trips',
@@ -81,8 +104,9 @@ class ProfilePage extends ConsumerWidget {
               MaterialPageRoute(builder: (_) => const CurrencyConverterPage()),
             ),
           ),
-          const _Tile(icon: Icons.settings_outlined, label: 'Settings'),
-          const _Tile(icon: Icons.lock_outline, label: 'Security'),
+          _Tile(icon: Icons.notifications_outlined, label: 'Notifications', onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const NotificationsPage()))),
+          _Tile(icon: Icons.settings_outlined, label: 'Settings', onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const SettingsPage()))),
+          _Tile(icon: Icons.lock_outline, label: 'Security', onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const SecurityPage()))),
           const SizedBox(height: 16),
           OutlinedButton.icon(
             onPressed: () => showSosSheet(context),

@@ -3,10 +3,11 @@
 > Verified guides, fair pricing, anti-scam intelligence and end-to-end trip
 > planning — delivered as a production-grade, polyglot microservices monorepo.
 
-GuideU helps tourists in Nepal book **verified guides**, plan trips, and avoid
-**scams/over-pricing**, while giving vendors reach and authorities trustworthy
-oversight. It is both a final-year thesis project and an intended startup, built
-to professional engineering standards.
+GuideU helps tourists in Nepal request and compare offers from **verified
+guides**, book local travel services, plan trips, and avoid
+**scams/over-pricing**. Guides have a dedicated availability, offer, assignment,
+chat, and trip-progress portal; administrators have an authenticated operations
+console. It is both a final-year thesis project and an intended startup.
 
 ---
 
@@ -81,6 +82,37 @@ docker compose up --build     # datastores, backend services, web admin, mlflow,
 
 Or run services individually with the Makefile (`make help`).
 
+Seed a complete local demonstration with:
+
+```bash
+make seed-demo
+```
+
+| Role | Email | Password |
+| --- | --- | --- |
+| Tourist | `tourist@guideu.local` | `TouristDemo123!` |
+| Guide | `guide@guideu.local` | `GuideDemo123!` |
+| Administrator | `admin@guideu.local` | `AdminDemo123!` |
+
+These accounts exist only when the demo seeder is explicitly run.
+
+## Delivered workflows
+
+- Tourist: registration/login/reset, discovery, AI recommendations, on-demand
+  guide requests and offer comparison, tour packages, hotel/flight/bus
+  reservations, itinerary workspace, fair-price checks, payments, chat,
+  notifications, settings, currency and SOS.
+- Guide: licence-aware registration, administrator verification, availability,
+  nearby requests, price/ETA offers, assignments, lifecycle updates and chat.
+- Administrator: cookie-backed login, users, guide verification, all booking
+  types, travel inventory, verified payments/escrow, reviews, scam reports, SOS,
+  festivals, demand forecasts and the ML registry.
+
+Payments are server-priced and support three explicit modes. `demo` is an
+offline local simulation; `sandbox` uses provider-hosted eSewa/Khalti checkout
+and server-side callback/lookup verification; `live` requires production
+credentials and fails closed when they are absent. See `.env.example`.
+
 ## 🌐 Service URLs (local)
 
 | Service | URL |
@@ -98,7 +130,7 @@ Or run services individually with the Makefile (`make help`).
 | --- | --- | --- |
 | **1** | Repository foundation: monorepo, service skeletons, infra, CI, docs | ✅ done |
 | **2** | Mobile authentication, discovery, destinations and guides | ✅ done |
-| **3** | Tour packages, bookings, demo payment confirmation and reviews | ✅ done |
+| **3** | Tour packages, guide offers, travel services, verified payments and reviews | ✅ done |
 | **4** | Recommendations, anti-scam, festivals, chat and admin dashboard | ✅ done |
 | **5** | Travel workspace, currency, SOS, hardening, deployment and thesis polish | ✅ done |
 

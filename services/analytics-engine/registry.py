@@ -25,6 +25,9 @@ logger = logging.getLogger("guideu.ml.registry")
 class ModelCard:
     name: str
     version: str
+    #: Artifact location *relative to the configured artifact_dir* (i.e. just the
+    #: filename). Older registries recorded an absolute path from the machine that
+    #: trained the model; :func:`_resolve_artifact` still accepts those.
     artifact_path: str
     metrics: dict[str, float]
     params: dict[str, Any]
@@ -56,13 +59,16 @@ def save_model(
     """Persist a trained model + its card; optionally log to MLflow."""
     settings = get_settings()
     version = dt.datetime.now(dt.timezone.utc).strftime("%Y%m%d%H%M%S")
-    artifact_path = Path(settings.artifact_dir) / f"{name}.joblib"
-    joblib.dump(model, artifact_path)
+    artifact_file = Path(settings.artifact_dir) / f"{name}.joblib"
+    joblib.dump(model, artifact_file)
 
     card = ModelCard(
         name=name,
         version=f"{name}-{version}",
-        artifact_path=str(artifact_path),
+        # Store the filename, not the absolute path. The registry travels with the
+        # artifacts (into a Docker image, a volume, or a marker's machine) and an
+        # absolute training-host path would not exist at the other end.
+        artifact_path=artifact_file.name,
         metrics={k: round(float(v), 4) for k, v in metrics.items()},
         params=params,
         trained_at=dt.datetime.now(dt.timezone.utc).isoformat(),
@@ -77,12 +83,55 @@ def save_model(
     return card
 
 
+def _resolve_artifact(card: ModelCard) -> Path | None:
+    """Find ``card``'s .joblib on *this* machine, or None if it is missing.
+
+    Tried in order: the recorded path as-is (absolute paths from legacy
+    registries, and relative paths from the process cwd), then the filename
+    inside the configured ``artifact_dir``, then the conventional
+    ``<artifact_dir>/<name>.joblib``. The second is what rescues a registry
+    trained on the Windows host and served from the Linux container: the
+    artifacts are right there in /app/artifacts, only the recorded path is
+    meaningless.
+    """
+    artifact_dir = Path(get_settings().artifact_dir)
+    recorded = Path(card.artifact_path)
+    candidates = [recorded, artifact_dir / recorded.name, artifact_dir / f"{card.name}.joblib"]
+    for candidate in candidates:
+        try:
+            if candidate.exists():
+                return candidate
+        except OSError:  # e.g. a Windows path evaluated on Linux
+            continue
+    return None
+
+
 def load_model(name: str) -> Any | None:
-    cards = _load_registry()
-    card = cards.get(name)
-    if not card or not Path(card.artifact_path).exists():
+    card = _load_registry().get(name)
+    if not card:
         return None
-    return joblib.load(card.artifact_path)
+    path = _resolve_artifact(card)
+    if path is None:
+        logger.warning(
+            "model %s is registered as %s but no artifact was found (looked in %s) — "
+            "inference for it will fall back or return empty",
+            name,
+            card.artifact_path,
+            get_settings().artifact_dir,
+        )
+        return None
+    return joblib.load(path)
+
+
+def loadable_models() -> dict[str, bool]:
+    """Which registered models actually have an artifact on disk.
+
+    Registration and loadability are not the same thing, and the difference is
+    invisible from the outside: every inference path degrades quietly, so a
+    dashboard reading the registry shows five healthy models while nothing can
+    actually score. /health reports this so the gap is visible.
+    """
+    return {card.name: _resolve_artifact(card) is not None for card in list_models()}
 
 
 def get_card(name: str) -> ModelCard | None:
@@ -102,9 +151,11 @@ def _maybe_log_mlflow(card: ModelCard) -> None:
 
         mlflow.set_tracking_uri(settings.mlflow_tracking_uri)
         mlflow.set_experiment("guideu")
+        artifact = _resolve_artifact(card)
         with mlflow.start_run(run_name=card.version):
             mlflow.log_params(card.params)
             mlflow.log_metrics(card.metrics)
-            mlflow.log_artifact(card.artifact_path)
+            if artifact is not None:
+                mlflow.log_artifact(str(artifact))
     except Exception as exc:  # pragma: no cover
         logger.warning("MLflow logging skipped: %s", exc)

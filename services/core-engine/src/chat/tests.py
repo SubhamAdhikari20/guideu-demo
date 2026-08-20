@@ -56,6 +56,15 @@ def test_outsider_cannot_read_or_post_to_a_booking_room(people, booking):
 
 
 @pytest.mark.django_db
+def test_realtime_room_authorization_uses_booking_participants(people, booking):
+    tourist, guide, outsider = people
+    room = f"booking:{booking.pk}"
+    assert auth(tourist).get(f"/api/v1/chat/threads/authorize/?room={room}").status_code == 200
+    assert auth(guide).get(f"/api/v1/chat/threads/authorize/?room={room}").status_code == 200
+    assert auth(outsider).get(f"/api/v1/chat/threads/authorize/?room={room}").status_code == 403
+
+
+@pytest.mark.django_db
 def test_reading_clears_unread_count_for_the_reader(people, booking):
     tourist, guide, _ = people
     room = f"booking:{booking.pk}"

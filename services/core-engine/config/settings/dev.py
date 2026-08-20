@@ -23,13 +23,29 @@ DEBUG = True
 # it, fall back to local memory and keep the promise this module's docstring
 # makes. Throttling shares this cache, so it stays per-process in that mode —
 # fine for local development, and the container path is unchanged.
-if not os.environ.get("REDIS_URL"):
+if (
+    not os.environ.get("REDIS_URL")
+    or DATABASES["default"]["ENGINE"] == "django.db.backends.sqlite3"
+):
     CACHES = {
         "default": {
             "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
             "LOCATION": "guideu-dev",
         }
     }
+
+# ---- Hosts -----------------------------------------------------------------
+# The mobile app is the primary client and never reaches Django as "localhost".
+# The Android emulator rewrites the host loopback to 10.0.2.2, and a real device
+# on Wi-Fi uses whatever the laptop's LAN address happens to be that day. With
+# ALLOWED_HOSTS pinned to localhost/127.0.0.1 (as .env and docker-compose set
+# it), both got a bare 400 DisallowedHost — which surfaces in the app as a
+# generic "no internet connection", pointing nowhere near the real cause.
+#
+# Development only. prod.py imports from base.py, not from here, and the
+# production compose pins config.settings.prod, so this cannot leak outward.
+# Same reasoning as CORS_ALLOW_ALL_ORIGINS below.
+ALLOWED_HOSTS = ["*"]
 
 # Permissive CORS in development only.
 CORS_ALLOW_ALL_ORIGINS = True

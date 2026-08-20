@@ -30,6 +30,8 @@ class BadgeAwardViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, viewse
     filterset_fields = ("badge",)
 
     def get_queryset(self):
+        if getattr(self, 'swagger_fake_view', False):
+            return BadgeAward.objects.none()
         user = self.request.user
         qs = BadgeAward.objects.select_related("badge", "user")
         if user.is_authenticated and user.is_staff:

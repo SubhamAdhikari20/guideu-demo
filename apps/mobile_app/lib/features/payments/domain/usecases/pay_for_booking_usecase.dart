@@ -15,8 +15,8 @@ class PayForBookingParams {
   final PaymentGateway gateway;
 }
 
-/// Pays for a booking: creates the payment, then confirms it. Confirmation is a
-/// stand-in for the real gateway callback (sandbox integration comes later).
+/// Creates a server-priced payment. Local demo mode confirms immediately;
+/// sandbox/live mode returns the provider checkout for the presentation layer.
 class PayForBookingUseCase implements UseCase<Payment, PayForBookingParams> {
   const PayForBookingUseCase(this._repository);
 
@@ -32,6 +32,7 @@ class PayForBookingUseCase implements UseCase<Payment, PayForBookingParams> {
     if (initFailure != null || payment == null) {
       return (initFailure, null);
     }
-    return _repository.confirm(payment.id);
+    if (payment.mode == 'demo') return _repository.confirm(payment.id);
+    return (null, payment);
   }
 }

@@ -8,6 +8,7 @@ import '../../../../core/widgets/error_retry.dart';
 import '../providers/guide_providers.dart';
 import '../widgets/guide_card.dart';
 import '../widgets/guide_profile_sheet.dart';
+import '../../../guide_requests/presentation/pages/guide_requests_page.dart';
 
 /// Guides tab — search and browse verified guides ("Book Guides" prototype).
 class GuidesPage extends ConsumerStatefulWidget {
@@ -54,6 +55,17 @@ class _GuidesPageState extends ConsumerState<GuidesPage> {
                   icon: const Icon(Icons.search),
                   onPressed: () => _onSearch(_searchController.text),
                 ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            Card(
+              color: AppColors.primary.withValues(alpha: .07),
+              child: ListTile(
+                leading: const CircleAvatar(child: Icon(Icons.radar_outlined)),
+                title: const Text('Request a guide now', style: TextStyle(fontWeight: FontWeight.bold)),
+                subtitle: const Text('Set a pickup, destination, and fare; compare offers from verified guides.'),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const GuideRequestsPage())),
               ),
             ),
             const SizedBox(height: 16),

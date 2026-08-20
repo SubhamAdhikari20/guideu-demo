@@ -9,6 +9,9 @@ class PaymentModel {
     required this.currency,
     required this.status,
     required this.gateway,
+    required this.mode,
+    this.checkoutUrl,
+    this.checkoutPayload,
   });
 
   final int id;
@@ -17,6 +20,9 @@ class PaymentModel {
   final String currency;
   final String status;
   final String gateway;
+  final String mode;
+  final String? checkoutUrl;
+  final Map<String, dynamic>? checkoutPayload;
 
   factory PaymentModel.fromJson(Map<String, dynamic> json) {
     return PaymentModel(
@@ -26,6 +32,11 @@ class PaymentModel {
       currency: (json['currency'] ?? 'NPR') as String,
       status: (json['status'] ?? 'PENDING') as String,
       gateway: (json['gateway'] ?? 'OTHER') as String,
+      mode: (json['mode'] ?? 'demo') as String,
+      checkoutUrl: json['checkout_url'] as String?,
+      checkoutPayload: json['checkout_payload'] is Map
+          ? Map<String, dynamic>.from(json['checkout_payload'] as Map)
+          : null,
     );
   }
 
@@ -42,5 +53,8 @@ class PaymentModel {
         currency: currency,
         status: status,
         gateway: gateway,
+        mode: mode,
+        checkoutUrl: checkoutUrl,
+        checkoutPayload: checkoutPayload,
       );
 }

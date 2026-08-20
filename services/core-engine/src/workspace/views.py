@@ -26,6 +26,8 @@ class TravelWorkspaceViewSet(viewsets.ModelViewSet):
     permission_classes = (IsAuthenticated,)
 
     def get_queryset(self):
+        if getattr(self, 'swagger_fake_view', False):
+            return TravelWorkspace.objects.none()
         return (
             TravelWorkspace.objects.filter(tourist=self.request.user)
             .prefetch_related("items")
@@ -83,6 +85,8 @@ class WorkspaceItemViewSet(viewsets.ModelViewSet):
     permission_classes = (IsAuthenticated,)
 
     def get_queryset(self):
+        if getattr(self, 'swagger_fake_view', False):
+            return WorkspaceItem.objects.none()
         return WorkspaceItem.objects.filter(workspace__tourist=self.request.user).select_related(
             "route", "guide", "package"
         )

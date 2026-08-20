@@ -1,6 +1,9 @@
 from django.contrib import admin
 
-from .models import TourPackage, BookingSession, ItineraryItem
+from .models import (
+    BookingSession, GuideOffer, GuideRequest, ItineraryItem, TourPackage,
+    TravelOffering, TravelServiceBooking,
+)
 
 
 @admin.register(TourPackage)
@@ -26,3 +29,30 @@ class ItineraryInline(admin.TabularInline):
 
 
 BookingSessionAdmin.inlines = (ItineraryInline,)
+
+
+class GuideOfferInline(admin.TabularInline):
+    model = GuideOffer
+    extra = 0
+
+
+@admin.register(GuideRequest)
+class GuideRequestAdmin(admin.ModelAdmin):
+    list_display = ('reference', 'tourist', 'accepted_guide', 'status', 'scheduled_at', 'final_fare')
+    list_filter = ('status',)
+    search_fields = ('reference', 'tourist__email', 'accepted_guide__email', 'pickup_name', 'destination_name')
+    inlines = (GuideOfferInline,)
+
+
+@admin.register(TravelOffering)
+class TravelOfferingAdmin(admin.ModelAdmin):
+    list_display = ('title', 'service_type', 'provider_name', 'unit_price', 'available_units', 'is_active')
+    list_filter = ('service_type', 'is_active')
+    search_fields = ('title', 'provider_name', 'location', 'origin', 'destination')
+
+
+@admin.register(TravelServiceBooking)
+class TravelServiceBookingAdmin(admin.ModelAdmin):
+    list_display = ('reference', 'tourist', 'offering', 'total_price', 'status', 'created_at')
+    list_filter = ('status', 'offering__service_type')
+    search_fields = ('reference', 'tourist__email', 'offering__title')

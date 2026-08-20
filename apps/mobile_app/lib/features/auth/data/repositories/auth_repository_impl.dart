@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 
+import '../../../../core/error/api_error_mapper.dart';
 import '../../../../core/error/failures.dart';
 import '../../../../core/storage/token_storage.dart';
 import '../../domain/entities/auth_user.dart';
@@ -23,7 +24,7 @@ class AuthRepositoryImpl implements AuthRepository {
       final user = await _remote.currentUser();
       return (null, user.toEntity());
     } on DioException catch (e) {
-      return (_mapError(e), null);
+      return (mapDioError(e), null);
     } catch (e) {
       return (ServerFailure(e.toString()), null);
     }
@@ -35,6 +36,9 @@ class AuthRepositoryImpl implements AuthRepository {
     required String email,
     required String password,
     String? phoneNumber,
+    required String role,
+    String? licenseNumber,
+    String? bio,
   }) async {
     try {
       final parts = fullName.trim().split(RegExp(r'\s+'));
@@ -47,11 +51,14 @@ class AuthRepositoryImpl implements AuthRepository {
         firstName: firstName,
         lastName: lastName,
         phoneNumber: phoneNumber,
+        role: role,
+        licenseNumber: licenseNumber,
+        bio: bio,
       );
       // Smooth UX: sign the user straight in after a successful registration.
       return login(email: email, password: password);
     } on DioException catch (e) {
-      return (_mapError(e), null);
+      return (mapDioError(e), null);
     } catch (e) {
       return (ServerFailure(e.toString()), null);
     }
@@ -65,7 +72,7 @@ class AuthRepositoryImpl implements AuthRepository {
       final user = await _remote.currentUser();
       return (null, user.toEntity());
     } on DioException catch (e) {
-      return (_mapError(e), null);
+      return (mapDioError(e), null);
     } catch (e) {
       return (ServerFailure(e.toString()), null);
     }
@@ -74,28 +81,4 @@ class AuthRepositoryImpl implements AuthRepository {
   @override
   Future<void> logout() => _tokenStorage.clear();
 
-  Failure _mapError(DioException e) {
-    if (e.type == DioExceptionType.connectionError ||
-        e.type == DioExceptionType.connectionTimeout ||
-        e.type == DioExceptionType.receiveTimeout) {
-      return const NetworkFailure();
-    }
-    final data = e.response?.data;
-    final code = e.response?.statusCode;
-    var message = 'Something went wrong. Please try again.';
-    if (data is Map) {
-      if (data['detail'] is String) {
-        message = data['detail'] as String;
-      } else if (data['non_field_errors'] is List &&
-          (data['non_field_errors'] as List).isNotEmpty) {
-        message = (data['non_field_errors'] as List).first.toString();
-      } else if (data.isNotEmpty) {
-        final firstVal = data.values.first;
-        message = firstVal is List && firstVal.isNotEmpty
-            ? firstVal.first.toString()
-            : firstVal.toString();
-      }
-    }
-    return ServerFailure(message, statusCode: code);
-  }
 }

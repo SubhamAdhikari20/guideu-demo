@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 
+import '../../../../core/error/api_error_mapper.dart';
 import '../../../../core/error/failures.dart';
 import '../../../guides/domain/entities/guide.dart';
 import '../../domain/entities/recommended_route.dart';
@@ -24,7 +25,7 @@ class RecommendationRepositoryImpl implements RecommendationRepository {
           .toList();
       return (null, items);
     } on DioException catch (e) {
-      return (_mapError(e), null);
+      return (mapDioError(e), null);
     } catch (e) {
       return (ServerFailure(e.toString()), null);
     }
@@ -36,21 +37,10 @@ class RecommendationRepositoryImpl implements RecommendationRepository {
       final models = await _remote.getRecommendedGuides();
       return (null, models.map((m) => m.toEntity()).toList());
     } on DioException catch (e) {
-      return (_mapError(e), null);
+      return (mapDioError(e), null);
     } catch (e) {
       return (ServerFailure(e.toString()), null);
     }
   }
 
-  Failure _mapError(DioException e) {
-    if (e.type == DioExceptionType.connectionError ||
-        e.type == DioExceptionType.connectionTimeout ||
-        e.type == DioExceptionType.receiveTimeout) {
-      return const NetworkFailure();
-    }
-    return ServerFailure(
-      'Could not load recommendations.',
-      statusCode: e.response?.statusCode,
-    );
-  }
 }

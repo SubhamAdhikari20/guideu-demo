@@ -54,6 +54,9 @@ class AuthController extends Notifier<AuthState> {
     required String email,
     required String password,
     String? phone,
+    String role = 'TOURIST',
+    String? licenseNumber,
+    String? bio,
   }) async {
     state = const AuthLoading();
     final (failure, user) = await _repo.register(
@@ -61,6 +64,9 @@ class AuthController extends Notifier<AuthState> {
       email: email,
       password: password,
       phoneNumber: phone,
+      role: role,
+      licenseNumber: licenseNumber,
+      bio: bio,
     );
     state = user != null
         ? AuthAuthenticated(user)

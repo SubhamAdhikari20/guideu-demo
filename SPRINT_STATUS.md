@@ -32,9 +32,10 @@ Mobile frontend wired to the existing backend: auth (JWT, secure storage),
 destinations (Explore), guides (list + profile), home + bottom-nav shell.
 
 ## Sprint 3 — DONE (merged)
-Marketplace transaction layer: tour packages + bookings, payments
-(eSewa/Khalti sheet → confirm), reviews/ratings shown on the guide profile.
-Bookings are package-centric.
+Marketplace transaction layer: tour packages, an on-demand guide marketplace,
+hotel/flight/bus reservations, server-priced payments, escrow and guide
+reviews. Tourists publish a trip request, compare price/ETA offers from verified
+available guides, accept one offer, pay, chat and track the trip lifecycle.
 
 ## Sprint 4 — DONE (merged)
 The AI + connectivity sprint. Verify-and-fill-gaps: reused the existing ML
@@ -61,7 +62,7 @@ Final sprint: features, polish, hardening, testing, deployment, docs.
 - **Hardening:** login/register rate limits, input sanitisation, Nginx security
   headers (`docs/architecture/SECURITY.md`); caching + query optimisation
   (`docs/performance/PERFORMANCE.md`).
-- **Testing:** end-to-end journey test + per-app tests (21 backend tests pass).
+- **Testing:** API contracts, permissions, end-to-end journeys and per-app tests.
 - **Deploy/docs:** `docker-compose.prod.yml` + `scripts/deploy.sh` +
   `docs/DEPLOYMENT.md`; `docs/THESIS_SUBMISSION_CHECKLIST.md`, `docs/DEMO_SCRIPT.md`.
 - See `docs/sprints/sprint_5/` for the plan and review.
@@ -111,20 +112,39 @@ The admin dashboard was also rebuilt on **shadcn/ui**, and the core-engine's
 existing scam-report `verify`/`dismiss` actions — previously unused — are now
 wired to it through Server Actions.
 
+## Thesis completion pass
+The final completion pass closes the demo-only gaps identified in the original
+project overview and UI/UX material:
+
+- role-aware tourist and guide registration, password reset/change, preferences,
+  account editing, notification controls and secure logout;
+- a separate guide portal for verification state, availability, nearby jobs,
+  offers, assignments, live progress, chat, earnings, escrow and ratings;
+- tourist guide requests and offer comparison, hotel/flight/bus inventory and
+  reservations, payment/refund status, notifications and post-trip reviews;
+- an authenticated administrator console for users, guide verification,
+  bookings, inventory, payments/escrow, reviews, scams and SOS operations;
+- explicit `demo`, `sandbox` and `live` payment modes, signed eSewa callbacks,
+  Khalti server verification, server-owned totals and fail-closed production
+  configuration;
+- participant-authorised realtime rooms and ownership checks across itinerary,
+  permits, payments, chat and moderation endpoints.
+
 ## Verification
-`manage.py check` clean; core-engine `pytest` **34 passing**; analytics-engine
-`pytest` **15 passing**; `flutter analyze`/`test` clean; Android debug APK build
-clean; real-time-engine `tsc`/lint clean; web_admin lint/typecheck/build clean.
-Verified live: Django + FastAPI running together, catalog seeded (2,000 routes /
-8,000 guides / 85,000 benchmarks), recommendations and price checks served by
-the ML models, and moderation actions applied against the database.
+Core-engine `pytest` **57 passing**; analytics-engine `pytest` **18 passing**;
+real-time-engine build/tests **11 passing**; Flutter analysis and **27 tests**
+clean; Android debug APK build clean; web admin lint/typecheck/production build
+clean; OpenAPI validation and `makemigrations --check` clean; development and
+production Compose configurations valid. A fresh database was migrated and
+seeded with 2,000 routes, 8,000 guides, 4,000 events, 85,000 pricing rows, demo
+accounts for all three roles, travel inventory, bookings, chat and safety data.
 
 ## Key API endpoints (core-engine, `/api/v1`)
 - `auth/token/`, `auth/token/refresh/`, `auth/register/`, `auth/users/me/`
 - `catalog/{routes,regions,guides-registry,events,pricing-benchmarks}/`
   (+ `events/upcoming/`, `pricing-benchmarks/lookup/`)
-- `bookings/{packages,bookings,itinerary-items}/`
-- `payments/{payments,escrow}/` + `payments/{id}/confirm/`
+- `bookings/{packages,bookings,itinerary-items,guide-requests,guide-offers,travel-offerings,travel-bookings}/`
+- `payments/{payments,escrow}/` + verified provider callbacks/lookups and demo confirmation
 - `reviews/reviews/` + `reviews/reviews/summary/`
 - `recommendations/{routes,guides,forecast}/`
 - `chat/{threads,messages}/`
@@ -137,5 +157,5 @@ Pagination: page-number `{count, next, previous, results}`, page_size 25.
 
 ## Next (post-thesis / future work)
 Offline map tile pre-download (needs route lat/lng), on-device chat translation,
-real hotel/flight/bus inventory APIs, physical IoT SOS device, admin moderation
-write actions + guide-verification / user-management pages.
+real hotel/flight/bus supplier APIs, physical IoT SOS device and background
+location tracking with a provider-reviewed privacy policy.

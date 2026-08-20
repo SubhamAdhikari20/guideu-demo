@@ -7,12 +7,14 @@ class ApiEndpoints {
 
   static const String baseUrl = String.fromEnvironment(
     'GUIDEU_API_BASE_URL',
+    // defaultValue: 'http://192.168.1.81:8000/api/v1',
     defaultValue: 'http://10.0.2.2:8000/api/v1',
   );
 
   /// Socket.IO base for the real-time-engine (live chat, presence).
   static const String realtimeBaseUrl = String.fromEnvironment(
     'GUIDEU_REALTIME_URL',
+    // defaultValue: 'http://192.168.1.81:8002',
     defaultValue: 'http://10.0.2.2:8002',
   );
 
@@ -24,6 +26,11 @@ class ApiEndpoints {
   static const String refresh = '/auth/token/refresh/';
   static const String register = '/auth/register/';
   static const String me = '/auth/users/me/';
+  static const String preferences = '/auth/users/preferences/';
+  static const String changePassword = '/auth/users/change-password/';
+  static const String guideProfile = '/auth/users/guide-profile/';
+  static const String passwordReset = '/auth/password-reset/';
+  static const String passwordResetConfirm = '/auth/password-reset/confirm/';
 
   // Catalog (core-engine)
   static const String routes = '/catalog/routes/';
@@ -36,6 +43,9 @@ class ApiEndpoints {
   // Bookings (core-engine)
   static const String packages = '/bookings/packages/';
   static const String bookings = '/bookings/bookings/';
+  static const String guideRequests = '/bookings/guide-requests/';
+  static const String travelOfferings = '/bookings/travel-offerings/';
+  static const String travelServiceBookings = '/bookings/travel-service-bookings/';
 
   // Payments (core-engine)
   static const String payments = '/payments/payments/';
@@ -51,6 +61,9 @@ class ApiEndpoints {
   // Chat history (core-engine; live delivery via real-time-engine socket)
   static const String chatThreads = '/chat/threads/';
   static const String chatMessages = '/chat/messages/';
+
+  // Notifications
+  static const String notifications = '/notifications/notifications/';
 
   // Trust / anti-scam (core-engine)
   static const String priceCheck = '/trust/price-check/';

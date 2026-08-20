@@ -22,6 +22,9 @@ class _SignupPageState extends ConsumerState<SignupPage> {
   final _email = TextEditingController();
   final _phone = TextEditingController();
   final _password = TextEditingController();
+  final _licenseNumber = TextEditingController();
+  final _bio = TextEditingController();
+  String _role = 'TOURIST';
 
   @override
   void dispose() {
@@ -29,6 +32,8 @@ class _SignupPageState extends ConsumerState<SignupPage> {
     _email.dispose();
     _phone.dispose();
     _password.dispose();
+    _licenseNumber.dispose();
+    _bio.dispose();
     super.dispose();
   }
 
@@ -36,9 +41,12 @@ class _SignupPageState extends ConsumerState<SignupPage> {
     if (_formKey.currentState?.validate() ?? false) {
       ref.read(authControllerProvider.notifier).register(
             fullName: _fullName.text.trim(),
-            email: _email.text.trim(),
+            email: Validators.normaliseEmail(_email.text),
             password: _password.text,
             phone: _phone.text.trim(),
+            role: _role,
+            licenseNumber: _licenseNumber.text.trim(),
+            bio: _bio.text.trim(),
           );
     }
   }
@@ -78,6 +86,15 @@ class _SignupPageState extends ConsumerState<SignupPage> {
                     textInputAction: TextInputAction.next,
                   ),
                   const SizedBox(height: 16),
+                  SegmentedButton<String>(
+                    segments: const [
+                      ButtonSegment(value: 'TOURIST', icon: Icon(Icons.luggage_outlined), label: Text('Tourist')),
+                      ButtonSegment(value: 'GUIDE', icon: Icon(Icons.hiking_outlined), label: Text('Guide')),
+                    ],
+                    selected: {_role},
+                    onSelectionChanged: loading ? null : (value) => setState(() => _role = value.first),
+                  ),
+                  const SizedBox(height: 16),
                   AuthTextField(
                     controller: _email,
                     hint: 'Email',
@@ -86,6 +103,21 @@ class _SignupPageState extends ConsumerState<SignupPage> {
                     textInputAction: TextInputAction.next,
                   ),
                   const SizedBox(height: 16),
+                  if (_role == 'GUIDE') ...[
+                    AuthTextField(
+                      controller: _licenseNumber,
+                      hint: 'NTB licence number',
+                      validator: (value) => Validators.required(value, 'Licence number'),
+                      textInputAction: TextInputAction.next,
+                    ),
+                    const SizedBox(height: 16),
+                    AuthTextField(
+                      controller: _bio,
+                      hint: 'Short guide bio (optional)',
+                      textInputAction: TextInputAction.next,
+                    ),
+                    const SizedBox(height: 16),
+                  ],
                   AuthTextField(
                     controller: _phone,
                     hint: 'Phone Number',

@@ -31,6 +31,7 @@ GUIDE_CANDIDATE_LIMIT = 50
 
 
 class RouteRecommendationsView(APIView):
+    serializer_class = RouteRecommendationQuerySerializer
     """``GET /api/v1/recommendations/routes/`` — suggested treks for the tourist."""
 
     permission_classes = (IsAuthenticated,)
@@ -74,6 +75,7 @@ class RouteRecommendationsView(APIView):
 
 
 class GuideRecommendationsView(APIView):
+    serializer_class = GuideRecommendationQuerySerializer
     """``GET /api/v1/recommendations/guides/`` — best-matched verified guides."""
 
     permission_classes = (IsAuthenticated,)
@@ -126,6 +128,7 @@ class GuideRecommendationsView(APIView):
 
 
 class ArrivalsForecastView(APIView):
+    serializer_class = ArrivalsForecastQuerySerializer
     """``GET /api/v1/recommendations/forecast/`` — projected monthly tourist arrivals.
 
     Serves two audiences from one model: admins planning guide capacity for a

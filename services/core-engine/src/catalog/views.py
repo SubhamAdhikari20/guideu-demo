@@ -135,7 +135,13 @@ class CulturalEventViewSet(viewsets.ModelViewSet):
             for m in wanted
         ]
         payload = {"from_month": start, "months": months}
-        cache.set(cache_key, payload, 60 * 30)  # 30 minutes
+        # Never cache an empty calendar. An unseeded database answers "no
+        # festivals", and caching that pins the empty state for 30 minutes —
+        # so seeding appears to do nothing, which is exactly when someone is
+        # watching. A real calendar is worth caching; an empty one is a
+        # symptom, and it should clear itself on the next request.
+        if any(month["festivals"] for month in months):
+            cache.set(cache_key, payload, 60 * 30)  # 30 minutes
         return Response(payload)
 
 

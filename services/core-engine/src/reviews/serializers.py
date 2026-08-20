@@ -15,7 +15,7 @@ class ReviewSerializer(serializers.ModelSerializer):
     class Meta:
         model = Review
         fields = (
-            "id", "author", "author_username", "guide", "route", "booking",
+            "id", "author", "author_username", "guide", "guide_account", "route", "booking",
             "rating", "title", "comment", "status", "is_flagged", "helpful_count",
             "target_kind", "created_at",
         )
@@ -23,9 +23,21 @@ class ReviewSerializer(serializers.ModelSerializer):
 
     def validate(self, data: dict[str, Any]) -> dict[str, Any]:
         guide = data.get("guide", getattr(self.instance, "guide", None))
+        guide_account = data.get("guide_account", getattr(self.instance, "guide_account", None))
         route = data.get("route", getattr(self.instance, "route", None))
-        if bool(guide) == bool(route):
-            raise serializers.ValidationError("Provide exactly one of `guide` or `route`.")
+        if sum(bool(target) for target in (guide, guide_account, route)) != 1:
+            raise serializers.ValidationError("Provide exactly one guide account, catalog guide, or route.")
+        if guide_account:
+            from src.authentication.models import User
+            from src.bookings.models import GuideRequest
+            request = self.context.get('request')
+            if guide_account.role != User.Roles.GUIDE:
+                raise serializers.ValidationError({'guide_account': 'The selected account is not a guide.'})
+            if request and not request.user.is_staff and not GuideRequest.objects.filter(
+                tourist=request.user, accepted_guide=guide_account,
+                status=GuideRequest.Status.COMPLETED,
+            ).exists():
+                raise serializers.ValidationError({'guide_account': 'Complete a trip with this guide before reviewing them.'})
         comment = data.get("comment", "")
         if comment and len(comment.strip()) < 3:
             raise serializers.ValidationError({"comment": "Comment is too short."})

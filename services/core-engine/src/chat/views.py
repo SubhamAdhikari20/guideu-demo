@@ -9,6 +9,7 @@ from __future__ import annotations
 
 from drf_spectacular.utils import OpenApiParameter, extend_schema
 from rest_framework import mixins, status, viewsets
+from rest_framework.decorators import action
 from rest_framework.exceptions import PermissionDenied, ValidationError
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -25,14 +26,27 @@ class ChatThreadViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
     permission_classes = (IsAuthenticated,)
 
     def get_queryset(self):
+        if getattr(self, 'swagger_fake_view', False):
+            return ChatThread.objects.none()
         return (
             ChatThread.objects.filter(participants=self.request.user)
             .prefetch_related("messages")
             .distinct()
         )
 
+    @action(detail=False, methods=['get'])
+    def authorize(self, request, *args, **kwargs):
+        room = request.query_params.get('room', '')
+        if not (room.startswith('booking:') or room.startswith('guide-request:')):
+            raise ValidationError({'room': 'A supported booking room is required.'})
+        thread = get_or_create_thread(room)
+        if not thread.participants.filter(pk=request.user.pk).exists():
+            raise PermissionDenied('You are not a participant in this conversation.')
+        return Response({'authorized': True, 'room': room})
+
 
 class ChatMessageViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.GenericViewSet):
+    queryset = ChatMessage.objects.none()
     serializer_class = ChatMessageSerializer
     permission_classes = (IsAuthenticated,)
     pagination_class = None  # chat history is read whole, oldest-first

@@ -46,6 +46,8 @@ def publish_event(channel: str, payload: dict[str, Any], *, on_commit: bool = Tr
     commits. Set ``on_commit=False`` to publish immediately (e.g. for events not
     tied to a write).
     """
+    if not getattr(settings, "EVENTS_ENABLED", True):
+        return
     if on_commit and not getattr(settings, "EVENTS_PUBLISH_EAGER", False):
         transaction.on_commit(lambda: _publish_now(channel, payload))
     else:

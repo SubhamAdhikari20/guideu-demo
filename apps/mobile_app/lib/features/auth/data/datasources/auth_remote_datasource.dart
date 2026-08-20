@@ -28,6 +28,9 @@ class AuthRemoteDataSource {
     required String firstName,
     required String lastName,
     String? phoneNumber,
+    required String role,
+    String? licenseNumber,
+    String? bio,
   }) async {
     await _dio.post(
       ApiEndpoints.register,
@@ -37,8 +40,10 @@ class AuthRemoteDataSource {
         'password': password,
         'first_name': firstName,
         'last_name': lastName,
-        'role': 'TOURIST',
+        'role': role,
         if (phoneNumber != null && phoneNumber.isNotEmpty) 'phone_number': phoneNumber,
+        if (licenseNumber != null && licenseNumber.isNotEmpty) 'license_number': licenseNumber,
+        if (bio != null && bio.isNotEmpty) 'bio': bio,
       },
     );
   }

@@ -203,6 +203,7 @@ CORS_ALLOWED_ORIGINS = env_list("CORS_ALLOWED_ORIGINS", "http://localhost:3000")
 
 # ---- Redis cache -----------------------------------------------------------
 REDIS_URL = os.environ.get("REDIS_URL", "redis://localhost:6379/0")
+EVENTS_ENABLED = env_bool("EVENTS_ENABLED", True)
 CACHES = {
     "default": {
         "BACKEND": "django.core.cache.backends.redis.RedisCache",
@@ -238,6 +239,8 @@ ANALYTICS_ENGINE_URL = os.environ.get("ANALYTICS_ENGINE_URL", "http://localhost:
 ANALYTICS_API_KEY = os.environ.get("ANALYTICS_API_KEY", "change-me-internal-service-token")
 
 PAYMENTS = {
+    "MODE": os.environ.get("PAYMENT_MODE", "demo").lower(),
+    "PUBLIC_API_URL": os.environ.get("PUBLIC_API_URL", "http://localhost:8000"),
     "ESEWA": {
         "MERCHANT_CODE": os.environ.get("ESEWA_MERCHANT_CODE", "EPAYTEST"),
         "SECRET_KEY": os.environ.get("ESEWA_SECRET_KEY", ""),

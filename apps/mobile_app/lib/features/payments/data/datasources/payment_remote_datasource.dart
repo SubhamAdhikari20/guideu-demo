@@ -31,4 +31,9 @@ class PaymentRemoteDataSource {
     final resp = await _dio.post('${ApiEndpoints.payments}$paymentId/confirm/');
     return PaymentModel.fromJson(resp.data as Map<String, dynamic>);
   }
+
+  Future<PaymentModel> verify(int paymentId) async {
+    final resp = await _dio.post('${ApiEndpoints.payments}$paymentId/verify/');
+    return PaymentModel.fromJson(resp.data as Map<String, dynamic>);
+  }
 }

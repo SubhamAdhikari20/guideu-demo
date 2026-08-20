@@ -6,9 +6,11 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from . import services
+from .serializers import CurrencyConvertResultSerializer, CurrencyRatesSerializer
 
 
 class CurrencyRatesView(APIView):
+    serializer_class = CurrencyRatesSerializer
     """``GET /api/v1/currency/rates/`` — current NPR-based exchange rates."""
 
     permission_classes = (AllowAny,)
@@ -18,6 +20,7 @@ class CurrencyRatesView(APIView):
 
 
 class CurrencyConvertView(APIView):
+    serializer_class = CurrencyConvertResultSerializer
     """``GET /api/v1/currency/convert/?amount=5000&to=USD``."""
 
     permission_classes = (AllowAny,)

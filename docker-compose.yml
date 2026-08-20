@@ -28,6 +28,14 @@ x-django-env: &django-env
   CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost:3000}
   ANALYTICS_ENGINE_URL: ${ANALYTICS_ENGINE_URL:-http://analytics-engine:8001}
   ANALYTICS_API_KEY: ${ANALYTICS_API_KEY:-change-me-internal-service-token}
+  GUIDEU_DATASET_DIR: /data/travel-planning
+  PAYMENT_MODE: ${PAYMENT_MODE:-demo}
+  PUBLIC_API_URL: ${PUBLIC_API_URL:-http://localhost:8000}
+  ESEWA_MERCHANT_CODE: ${ESEWA_MERCHANT_CODE:-EPAYTEST}
+  ESEWA_SECRET_KEY: ${ESEWA_SECRET_KEY:-}
+  ESEWA_BASE_URL: ${ESEWA_BASE_URL:-https://rc-epay.esewa.com.np}
+  KHALTI_SECRET_KEY: ${KHALTI_SECRET_KEY:-}
+  KHALTI_BASE_URL: ${KHALTI_BASE_URL:-https://dev.khalti.com}
 
 services:
   # ---- Datastores ----------------------------------------------------------
@@ -85,6 +93,9 @@ services:
     environment: *django-env
     volumes:
       - media_data:/app/media
+      # Read-only mount so `manage.py seed_from_dataset` can find it in-container
+      # (mirrors the same mount already used by analytics-engine below).
+      - ../Travel Planning:/data/travel-planning:ro
     ports:
       - "8000:8000"
     depends_on:
@@ -165,6 +176,9 @@ services:
       ANALYTICS_ENGINE_URL: http://analytics-engine:8001
       ANALYTICS_API_KEY: ${ANALYTICS_API_KEY:-change-me-internal-service-token}
       ADMIN_API_TOKEN: ${ADMIN_API_TOKEN:-}
+      # Lets the dashboard mint a fresh access token when the 12h one lapses,
+      # instead of every page going blank until the setup script is re-run.
+      ADMIN_REFRESH_TOKEN: ${ADMIN_REFRESH_TOKEN:-}
     ports:
       - "3000:3000"
     depends_on:

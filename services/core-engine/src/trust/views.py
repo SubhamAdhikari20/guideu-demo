@@ -27,6 +27,8 @@ class ScamReportViewSet(viewsets.ModelViewSet):
     ordering_fields = ("created_at", "overcharge_ratio")
 
     def get_queryset(self):
+        if getattr(self, 'swagger_fake_view', False):
+            return ScamReport.objects.none()
         user = self.request.user
         qs = ScamReport.objects.select_related("region", "reporter")
         if user.is_authenticated and user.is_staff:

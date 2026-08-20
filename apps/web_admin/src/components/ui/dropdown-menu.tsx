@@ -53,6 +53,15 @@ function DropdownMenuGroup({ ...props }: MenuPrimitive.Group.Props) {
   return <MenuPrimitive.Group data-slot="dropdown-menu-group" {...props} />
 }
 
+/**
+ * A heading inside the menu.
+ *
+ * MUST be rendered inside a `<DropdownMenuGroup>` (or `<DropdownMenuRadioGroup>`).
+ * Base UI's GroupLabel reads the group's id from context and *throws* when there
+ * is none, and because the menu popup only mounts on open, the throw happens on
+ * the click that opens it — which the App Router error boundary turns into a
+ * whole-page "This page couldn't load".
+ */
 function DropdownMenuLabel({
   className,
   inset,

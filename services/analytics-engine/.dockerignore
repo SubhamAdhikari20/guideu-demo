@@ -1,0 +1,12 @@
+.venv/
+__pycache__/
+*.py[oc]
+.pytest_cache/
+.git/
+*.md
+mlruns/
+
+# NOTE: artifacts/ is deliberately NOT ignored. The trained .joblib files are
+# copied into the image so `docker compose up` serves a working ML stack without
+# a separate in-container training run; the ml_artifacts volume is seeded from
+# them the first time it is created. Retrain in-container to replace them.

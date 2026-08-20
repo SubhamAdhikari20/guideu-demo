@@ -5,6 +5,7 @@ import '../../../../app/theme/app_colors.dart';
 import '../../domain/entities/payment.dart';
 import '../../domain/usecases/pay_for_booking_usecase.dart';
 import '../providers/payment_providers.dart';
+import '../pages/sandbox_checkout_page.dart';
 
 /// Opens the payment sheet for a booking. Returns `true` when payment succeeds.
 Future<bool?> showPaymentSheet(
@@ -60,6 +61,21 @@ class _PaymentSheetState extends ConsumerState<_PaymentSheet> {
     setState(() => _processing = false);
     if (payment != null && payment.isSuccess) {
       Navigator.of(context).pop(true);
+    } else if (payment != null && payment.requiresProviderCheckout) {
+      final returned = await Navigator.of(context).push<bool>(
+        MaterialPageRoute(builder: (_) => SandboxCheckoutPage(payment: payment)),
+      );
+      if (!mounted || returned != true) return;
+      final (verifyFailure, verified) =
+          await ref.read(paymentRepositoryProvider).verify(payment.id);
+      if (!mounted) return;
+      if (verified?.isSuccess == true) {
+        Navigator.of(context).pop(true);
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(verifyFailure?.message ?? 'Payment is still pending.')),
+        );
+      }
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(failure?.message ?? 'Payment failed.')),
@@ -107,7 +123,7 @@ class _PaymentSheetState extends ConsumerState<_PaymentSheet> {
             ),
           const SizedBox(height: 8),
           Text(
-            'Sandbox payment — confirmed instantly for the demo.',
+            'Demo mode confirms locally. Sandbox mode opens the official provider checkout and verifies the result on the server.',
             style: TextStyle(
               color: AppColors.textSecondary.withValues(alpha: 0.9),
               fontSize: 12,

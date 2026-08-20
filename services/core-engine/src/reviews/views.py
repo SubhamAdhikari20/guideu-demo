@@ -18,7 +18,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
     serializer_class = ReviewSerializer
     permission_classes = (IsAuthenticatedOrReadOnly, IsOwnerOrReadOnly)
     owner_field = "author"
-    filterset_fields = ("guide", "route", "rating")
+    filterset_fields = ("guide", "guide_account", "route", "rating")
     ordering_fields = ("created_at", "rating", "helpful_count")
     search_fields = ("title", "comment")
 
@@ -41,6 +41,8 @@ class ReviewViewSet(viewsets.ModelViewSet):
         qs = Review.objects.all()
         if "guide" in request.query_params:
             qs = qs.filter(guide_id=request.query_params["guide"])
+        elif "guide_account" in request.query_params:
+            qs = qs.filter(guide_account_id=request.query_params["guide_account"])
         elif "route" in request.query_params:
             qs = qs.filter(route_id=request.query_params["route"])
         return Response(ReviewSummarySerializer(qs.summary()).data)

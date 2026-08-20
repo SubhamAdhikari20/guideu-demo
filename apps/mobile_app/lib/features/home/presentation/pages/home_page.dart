@@ -15,6 +15,8 @@ import '../../../guides/presentation/widgets/guide_profile_sheet.dart';
 import '../../../recommendations/domain/entities/recommended_route.dart';
 import '../../../recommendations/presentation/providers/recommendation_providers.dart';
 import '../../../workspace/presentation/pages/workspaces_list_page.dart';
+import '../../../travel_services/presentation/pages/travel_services_page.dart';
+import '../../../notifications/presentation/pages/notifications_page.dart';
 
 /// Home tab — discovery landing styled after the Home prototype: greeting,
 /// search, a hero banner, quick actions and a "Nearby Guides" strip.
@@ -168,8 +170,8 @@ class _Header extends StatelessWidget {
         ),
         IconButton(
           icon: const Icon(Icons.notifications_none),
-          onPressed: () => ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Notifications are coming soon.')),
+          onPressed: () => Navigator.of(context).push(
+            MaterialPageRoute(builder: (_) => const NotificationsPage()),
           ),
         ),
       ],
@@ -254,8 +256,8 @@ class _QuickActions extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    void soon(String label) => ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('$label booking is coming soon.')),
+    void open(String type) => Navigator.of(context).push(
+          MaterialPageRoute(builder: (_) => TravelServicesPage(serviceType: type)),
         );
 
     return Row(
@@ -269,17 +271,17 @@ class _QuickActions extends StatelessWidget {
         _ActionItem(
           icon: Icons.hotel,
           label: 'Hotels',
-          onTap: () => soon('Hotel'),
+          onTap: () => open('HOTEL'),
         ),
         _ActionItem(
           icon: Icons.flight,
           label: 'Flights',
-          onTap: () => soon('Flight'),
+          onTap: () => open('FLIGHT'),
         ),
         _ActionItem(
           icon: Icons.directions_bus,
           label: 'Buses',
-          onTap: () => soon('Bus'),
+          onTap: () => open('BUS'),
         ),
       ],
     );

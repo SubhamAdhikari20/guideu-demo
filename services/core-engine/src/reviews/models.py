@@ -21,7 +21,7 @@ class ReviewQuerySet(models.QuerySet):
 class Review(TimeStampedModel):
     """A rating + comment a tourist leaves for a guide or a route.
 
-    Exactly one of ``guide`` / ``route`` is set (enforced by a DB constraint).
+    Exactly one of the catalog guide, app guide account, or route is set.
     New reviews start ``PENDING`` and become visible only once moderated.
     """
 
@@ -32,6 +32,10 @@ class Review(TimeStampedModel):
 
     author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="reviews")
     guide = models.ForeignKey("catalog.GuideRegistry", on_delete=models.CASCADE, null=True, blank=True, related_name="reviews")
+    guide_account = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True, blank=True,
+        related_name="guide_account_reviews"
+    )
     route = models.ForeignKey("catalog.TrekkingRoute", on_delete=models.CASCADE, null=True, blank=True, related_name="reviews")
     booking = models.ForeignKey("bookings.BookingSession", on_delete=models.SET_NULL, null=True, blank=True, related_name="reviews")
     rating = models.PositiveSmallIntegerField(validators=[MinValueValidator(1), MaxValueValidator(5)], db_index=True)
@@ -49,8 +53,9 @@ class Review(TimeStampedModel):
             models.CheckConstraint(
                 name="review_exactly_one_target",
                 condition=(
-                    models.Q(guide__isnull=False, route__isnull=True)
-                    | models.Q(guide__isnull=True, route__isnull=False)
+                    models.Q(guide__isnull=False, guide_account__isnull=True, route__isnull=True)
+                    | models.Q(guide__isnull=True, guide_account__isnull=False, route__isnull=True)
+                    | models.Q(guide__isnull=True, guide_account__isnull=True, route__isnull=False)
                 ),
             ),
             models.UniqueConstraint(
@@ -59,12 +64,21 @@ class Review(TimeStampedModel):
             models.UniqueConstraint(
                 fields=["author", "route"], condition=models.Q(route__isnull=False), name="uniq_review_author_route"
             ),
+            models.UniqueConstraint(
+                fields=["author", "guide_account"],
+                condition=models.Q(guide_account__isnull=False),
+                name="uniq_review_author_guide_account",
+            ),
         ]
 
     def __str__(self) -> str:  # pragma: no cover - trivial
-        target = self.guide_id and f"guide:{self.guide_id}" or f"route:{self.route_id}"
+        target = (
+            f"guide:{self.guide_id}" if self.guide_id
+            else f"guide-account:{self.guide_account_id}" if self.guide_account_id
+            else f"route:{self.route_id}"
+        )
         return f"{self.author_id} -> {target} ({self.rating}★)"
 
     @property
     def target_kind(self) -> str:
-        return "guide" if self.guide_id else "route"
+        return "guide" if (self.guide_id or self.guide_account_id) else "route"

@@ -28,6 +28,7 @@ import {
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
@@ -82,25 +83,30 @@ export function ReportRowActions({
           }
         />
         <DropdownMenuContent align="end">
-          <DropdownMenuLabel>Report #{report.id}</DropdownMenuLabel>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem onClick={() => setDetailOpen(true)}>
-            <Eye className="size-4" /> View details
-          </DropdownMenuItem>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem
-            disabled={!canModerate || alreadyHandled || isPending}
-            onClick={() => setConfirming('verify')}
-          >
-            <Check className="size-4" /> Mark as verified
-          </DropdownMenuItem>
-          <DropdownMenuItem
-            variant="destructive"
-            disabled={!canModerate || alreadyHandled || isPending}
-            onClick={() => setConfirming('dismiss')}
-          >
-            <X className="size-4" /> Dismiss report
-          </DropdownMenuItem>
+          {/* The label is a Base UI GroupLabel: it reads its group from context and
+              throws if there is no <DropdownMenuGroup> above it, which takes the
+              whole page down with it. Keep label and items inside one group. */}
+          <DropdownMenuGroup>
+            <DropdownMenuLabel>Report #{report.id}</DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={() => setDetailOpen(true)}>
+              <Eye className="size-4" /> View details
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              disabled={!canModerate || alreadyHandled || isPending}
+              onClick={() => setConfirming('verify')}
+            >
+              <Check className="size-4" /> Mark as verified
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              variant="destructive"
+              disabled={!canModerate || alreadyHandled || isPending}
+              onClick={() => setConfirming('dismiss')}
+            >
+              <X className="size-4" /> Dismiss report
+            </DropdownMenuItem>
+          </DropdownMenuGroup>
         </DropdownMenuContent>
       </DropdownMenu>
 

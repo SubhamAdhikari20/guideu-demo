@@ -8,11 +8,17 @@ class RegisterParams {
     required this.email,
     required this.password,
     this.phoneNumber,
+    this.role = 'TOURIST',
+    this.licenseNumber,
+    this.bio,
   });
   final String fullName;
   final String email;
   final String password;
   final String? phoneNumber;
+  final String role;
+  final String? licenseNumber;
+  final String? bio;
 }
 
 class RegisterUseCase {
@@ -24,5 +30,8 @@ class RegisterUseCase {
         email: params.email,
         password: params.password,
         phoneNumber: params.phoneNumber,
+        role: params.role,
+        licenseNumber: params.licenseNumber,
+        bio: params.bio,
       );
 }
