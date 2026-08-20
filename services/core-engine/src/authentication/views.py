@@ -78,13 +78,14 @@ class UserViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['get', 'patch'], permission_classes=[permissions.IsAuthenticated])
     def preferences(self, request, *args, **kwargs):
         preferences, _ = UserPreferences.objects.get_or_create(user=request.user)
-        serializer = UserPreferencesSerializer(
-            preferences, data=request.data if request.method == 'PATCH' else None,
-            partial=True, context={'request': request}
-        )
         if request.method == 'PATCH':
+            serializer = UserPreferencesSerializer(
+                preferences, data=request.data, partial=True, context={'request': request}
+            )
             serializer.is_valid(raise_exception=True)
             serializer.save()
+        else:
+            serializer = UserPreferencesSerializer(preferences, context={'request': request})
         return Response(serializer.data)
 
     @action(detail=True, methods=['post'], url_path='verify-guide', permission_classes=[permissions.IsAdminUser])
@@ -120,16 +121,16 @@ class UserViewSet(viewsets.ModelViewSet):
         if request.user.role != User.Roles.GUIDE:
             return Response({'detail': 'Only guide accounts have a guide profile.'}, status=status.HTTP_403_FORBIDDEN)
         profile = request.user.guide_profile
-        serializer = GuideProfileSerializer(
-            profile, data=request.data if request.method == 'PATCH' else None, partial=True
-        )
         if request.method == 'PATCH':
+            serializer = GuideProfileSerializer(profile, data=request.data, partial=True)
             serializer.is_valid(raise_exception=True)
             if any(key in request.data for key in ('availability', 'current_latitude', 'current_longitude')):
                 from django.utils import timezone
                 serializer.save(availability_updated_at=timezone.now())
             else:
                 serializer.save()
+        else:
+            serializer = GuideProfileSerializer(profile)
         return Response(serializer.data)
 
 

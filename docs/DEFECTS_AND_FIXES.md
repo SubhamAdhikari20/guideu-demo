@@ -249,6 +249,41 @@ or application-error log entries.
 
 ---
 
+## 13. Mobile logout cleared the token but left the protected portal open
+
+**Symptom.** Tapping Log out changed the profile name to a generic “Traveller”
+but left the tourist shell, menus and bottom navigation on screen.
+
+**Root cause.** The authentication notifier became unauthenticated, but only the
+splash and login pages listened for auth-state navigation. The profile action
+never told GoRouter to leave `/home`.
+
+**Fix.** The logout action now waits for secure token deletion and replaces the
+route with `/login`. A widget regression test verifies both the visible login
+destination and router location. The fix was rebuilt and installed on an
+Android 17 Pixel emulator; logout reached the login form, after which the seeded
+guide account opened its dedicated dashboard and nearby-request portal against
+the live Docker API.
+
+---
+
+## 14. Guide profile and settings GET requests returned 500
+
+**Symptom.** The guide dashboard rendered its identity but repeatedly logged a
+500 while loading the editable guide profile. A plain GET of tourist settings
+had the same failure.
+
+**Root cause.** Both dual-method actions always passed a `data` argument to the
+DRF serializer. On GET that value was `None`, but DRF still treated the instance
+as an unvalidated input serializer and rejected access to `.data`.
+
+**Fix.** GET now constructs an ordinary representation serializer; PATCH alone
+constructs an input serializer and calls `is_valid()`. API regression tests and
+the black-box demo now read each resource after updating it. The live guide
+dashboard was then repeated with no 500 log entries.
+
+---
+
 ## What this says about the testing approach
 
 The thesis already notes that automated coverage was thin. This exercise shows
@@ -268,8 +303,8 @@ Three kinds of test were added in response, and each maps to a defect class:
 | Black-box HTTP acceptance journey | Cross-role auth, payments, inventory, refunds, ML, safety and rendered admin pages |
 | Redis bridge dispatch tests | Published channels that are subscribed but silently discarded |
 
-Counts after this work: **59 core-engine tests, 18 analytics-engine tests, 13
-realtime tests and 27 Flutter tests**, with the increase concentrated on wiring
+Counts after this work: **60 core-engine tests, 18 analytics-engine tests, 13
+realtime tests and 28 Flutter tests**, with the increase concentrated on wiring
 and complete workflow contracts rather than more unit coverage of
 already-working functions.
 

@@ -265,11 +265,15 @@ def main() -> int:
         },
     )
     require(profile["availability"] == "AVAILABLE", "Guide publishes availability and location")
+    _, profile_read = json_request("auth/users/guide-profile/", token=guide_token)
+    require(profile_read["license_number"] == f"NTB-{suffix}", "Guide portal reads its saved profile")
     _, preferences = json_request(
         "auth/users/preferences/", method="PATCH", token=tourist_token,
         payload={"language": "en", "currency": "NPR", "theme": "DARK", "safety_notifications": True},
     )
     require(preferences["theme"] == "DARK", "Tourist settings persist")
+    _, preferences_read = json_request("auth/users/preferences/", token=tourist_token)
+    require(preferences_read["theme"] == "DARK", "Tourist portal reads its saved settings")
 
     _, routes = json_request(
         "recommendations/routes/?top_k=3&adventure=0.85&culture=0.65&nature=0.9",

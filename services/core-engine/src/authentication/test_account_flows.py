@@ -60,6 +60,9 @@ def test_preferences_and_password_change_are_owned_by_current_user():
     user = User.objects.create_user(username='settings', email='settings@example.com', password='OldPassword123!')
     client = APIClient()
     client.force_authenticate(user)
+    initial = client.get('/api/v1/auth/users/preferences/')
+    assert initial.status_code == 200
+    assert initial.data['currency'] == 'NPR'
     response = client.patch('/api/v1/auth/users/preferences/', {'currency': 'USD', 'push_notifications': False})
     assert response.status_code == 200
     assert response.data['currency'] == 'USD'
@@ -69,3 +72,20 @@ def test_preferences_and_password_change_are_owned_by_current_user():
     assert changed.status_code == 200
     user.refresh_from_db()
     assert user.check_password('NewPassword456!')
+
+
+@pytest.mark.django_db
+def test_guide_can_read_profile_without_entering_edit_mode():
+    guide = User.objects.create_user(
+        username='profile-guide', email='profile-guide@example.com',
+        password='GuidePassword123!', role=User.Roles.GUIDE,
+    )
+    guide.guide_profile.license_number = 'NTB-READ-ONE'
+    guide.guide_profile.save()
+    client = APIClient()
+    client.force_authenticate(guide)
+
+    response = client.get('/api/v1/auth/users/guide-profile/')
+
+    assert response.status_code == 200
+    assert response.data['license_number'] == 'NTB-READ-ONE'

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
+import '../../../../app/routes/app_router.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../../auth/presentation/providers/auth_state.dart';
@@ -43,7 +45,11 @@ class ProfilePage extends ConsumerWidget {
                       colors: [AppColors.primary, AppColors.primaryDark],
                     ),
                   ),
-                  child: const Icon(Icons.person, color: Colors.white, size: 46),
+                  child: const Icon(
+                    Icons.person,
+                    color: Colors.white,
+                    size: 46,
+                  ),
                 ),
                 const SizedBox(height: 12),
                 Text(
@@ -69,25 +75,31 @@ class ProfilePage extends ConsumerWidget {
           _Tile(
             icon: Icons.edit_outlined,
             label: 'Edit Profile',
-            onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const EditProfilePage())),
+            onTap: () => Navigator.of(
+              context,
+            ).push(MaterialPageRoute(builder: (_) => const EditProfilePage())),
           ),
           _Tile(
             icon: Icons.receipt_long_outlined,
             label: 'My Bookings',
-            onTap: () => Navigator.of(context).push(
-              MaterialPageRoute(builder: (_) => const MyBookingsPage()),
-            ),
+            onTap: () => Navigator.of(
+              context,
+            ).push(MaterialPageRoute(builder: (_) => const MyBookingsPage())),
           ),
           if (user?.isTourist == true) ...[
             _Tile(
               icon: Icons.hiking_outlined,
               label: 'Guide Requests',
-              onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const GuideRequestsPage())),
+              onTap: () => Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const GuideRequestsPage()),
+              ),
             ),
             _Tile(
               icon: Icons.confirmation_number_outlined,
               label: 'Travel Bookings',
-              onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const MyTravelBookingsPage())),
+              onTap: () => Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const MyTravelBookingsPage()),
+              ),
             ),
           ],
           _Tile(
@@ -104,19 +116,45 @@ class ProfilePage extends ConsumerWidget {
               MaterialPageRoute(builder: (_) => const CurrencyConverterPage()),
             ),
           ),
-          _Tile(icon: Icons.notifications_outlined, label: 'Notifications', onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const NotificationsPage()))),
-          _Tile(icon: Icons.settings_outlined, label: 'Settings', onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const SettingsPage()))),
-          _Tile(icon: Icons.lock_outline, label: 'Security', onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const SecurityPage()))),
+          _Tile(
+            icon: Icons.notifications_outlined,
+            label: 'Notifications',
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => const NotificationsPage()),
+            ),
+          ),
+          _Tile(
+            icon: Icons.settings_outlined,
+            label: 'Settings',
+            onTap: () => Navigator.of(
+              context,
+            ).push(MaterialPageRoute(builder: (_) => const SettingsPage())),
+          ),
+          _Tile(
+            icon: Icons.lock_outline,
+            label: 'Security',
+            onTap: () => Navigator.of(
+              context,
+            ).push(MaterialPageRoute(builder: (_) => const SecurityPage())),
+          ),
           const SizedBox(height: 16),
           OutlinedButton.icon(
             onPressed: () => showSosSheet(context),
             icon: const Icon(Icons.sos, color: AppColors.error),
-            label: const Text('Emergency SOS', style: TextStyle(color: AppColors.error)),
-            style: OutlinedButton.styleFrom(side: const BorderSide(color: AppColors.error)),
+            label: const Text(
+              'Emergency SOS',
+              style: TextStyle(color: AppColors.error),
+            ),
+            style: OutlinedButton.styleFrom(
+              side: const BorderSide(color: AppColors.error),
+            ),
           ),
           const SizedBox(height: 12),
           OutlinedButton.icon(
-            onPressed: () => ref.read(authControllerProvider.notifier).logout(),
+            onPressed: () async {
+              await ref.read(authControllerProvider.notifier).logout();
+              if (context.mounted) context.go(AppRoutes.login);
+            },
             icon: const Icon(Icons.logout, color: AppColors.error),
             label: const Text(
               'Log out',
@@ -171,10 +209,11 @@ class _Tile extends StatelessWidget {
       leading: Icon(icon, color: AppColors.primary),
       title: Text(label),
       trailing: const Icon(Icons.chevron_right, color: AppColors.textSecondary),
-      onTap: onTap ??
-          () => ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('$label is coming soon.')),
-              ),
+      onTap:
+          onTap ??
+          () => ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text('$label is coming soon.'))),
     );
   }
 }
