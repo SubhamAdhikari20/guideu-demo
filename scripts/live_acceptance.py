@@ -129,6 +129,14 @@ def create_payment(token: str, target: dict[str, int], gateway: str, expected_am
         f"payments/payments/{payment['id']}/confirm/", method="POST", token=token, payload={}
     )
     require(repeated["status"] == "SUCCESS", "Payment confirmation is idempotent", gateway)
+    _, receipt = json_request(f"payments/payments/{payment['id']}/receipt/", token=token)
+    require(
+        receipt["receipt_number"] == f"GUIDEU-{payment['id']:08d}"
+        and receipt["gateway"] in {"eSewa", "Khalti"}
+        and receipt["amount"] == expected_amount,
+        "Verified payment receipt is available",
+        receipt["receipt_number"],
+    )
     return repeated
 
 

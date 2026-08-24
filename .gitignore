@@ -53,6 +53,8 @@ pnpm-debug.log*
 # ---- Local databases -------------------------------------------------------
 *.sqlite3
 *.sqlite3-journal
+*.sqlite3.bak-*
+*.sqlite3.bak
 *.db
 
 # ---- Datasets (kept out of git; only directory placeholders tracked) -------
