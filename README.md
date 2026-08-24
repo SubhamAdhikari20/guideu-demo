@@ -120,6 +120,37 @@ offline local simulation; `sandbox` uses provider-hosted eSewa/Khalti checkout
 and server-side callback/lookup verification; `live` requires production
 credentials and fails closed when they are absent. See `.env.example`.
 
+### Running the services natively (without Docker)
+
+Two things bite here and neither one announces itself, so they are written
+down rather than rediscovered:
+
+1. **Point the core engine at a local analytics engine.** `.env` ships
+   `ANALYTICS_ENGINE_URL=http://analytics-engine:8001`, which is the
+   docker-compose service name and only resolves inside compose. Run natively
+   without overriding it and every ML call fails DNS, degrades quietly to a
+   benchmark answer, and recommendations come back `"source": "fallback"` for
+   the whole session.
+
+   ```bash
+   ANALYTICS_ENGINE_URL=http://localhost:8001 python manage.py runserver 8000 --noreload
+   ```
+
+2. **Wait for the analytics engine to warm up.** It loads five models on start
+   and takes roughly 15 to 20 seconds. Calls made during that window hit the
+   4 second client timeout and fall back silently, so an early request looks
+   like a broken model rather than a cold one.
+
+Check both at once before demoing anything:
+
+```bash
+curl -s http://localhost:8000/readyz/
+# {"status": "ready", "ml_predictions": "live", ...}
+```
+
+If that says `degraded`, the response names which dependency is down and, for
+the DNS case above, tells you which URL to use instead.
+
 ## 🌐 Service URLs (local)
 
 | Service | URL |
