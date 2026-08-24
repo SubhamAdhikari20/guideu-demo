@@ -11,6 +11,7 @@ import '../../../currency/presentation/pages/currency_converter_page.dart';
 import '../../../safety/presentation/widgets/sos_sheet.dart';
 import '../../../workspace/presentation/pages/workspaces_list_page.dart';
 import '../../../notifications/presentation/pages/notifications_page.dart';
+import '../../../payments/presentation/pages/payment_history_page.dart';
 import '../../../travel_services/presentation/pages/my_travel_bookings_page.dart';
 import '../../../guide_requests/presentation/pages/guide_requests_page.dart';
 import 'security_page.dart';
@@ -85,6 +86,13 @@ class ProfilePage extends ConsumerWidget {
             onTap: () => Navigator.of(
               context,
             ).push(MaterialPageRoute(builder: (_) => const MyBookingsPage())),
+          ),
+          _Tile(
+            icon: Icons.payments_outlined,
+            label: 'Payments and Receipts',
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => const PaymentHistoryPage()),
+            ),
           ),
           if (user?.isTourist == true) ...[
             _Tile(

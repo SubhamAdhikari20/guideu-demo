@@ -34,13 +34,16 @@ class HomePage extends ConsumerWidget {
         : 'traveller';
     final nearbyGuides = ref.watch(guidesProvider(''));
     final recommended = ref.watch(recommendedRoutesProvider);
+    final unreadNotifications = ref
+        .watch(notificationUnreadCountProvider)
+        .maybeWhen(data: (value) => value, orElse: () => 0);
 
     return Scaffold(
       body: SafeArea(
         child: ListView(
           padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
           children: [
-            _Header(name: name),
+            _Header(name: name, unreadNotifications: unreadNotifications),
             const SizedBox(height: 16),
             _SearchBar(onTap: onSeeExplore),
             const SizedBox(height: 16),
@@ -59,9 +62,9 @@ class HomePage extends ConsumerWidget {
             _QuickActions(onGuides: onSeeGuides),
             const SizedBox(height: 20),
             _PackagesCta(
-              onTap: () => Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => const PackagesPage()),
-              ),
+              onTap: () => Navigator.of(
+                context,
+              ).push(MaterialPageRoute(builder: (_) => const PackagesPage())),
             ),
             const SizedBox(height: 12),
             _PlanTripCta(
@@ -71,9 +74,9 @@ class HomePage extends ConsumerWidget {
             ),
             const SizedBox(height: 12),
             _SafetyCta(
-              onTap: () => Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => const PriceCheckPage()),
-              ),
+              onTap: () => Navigator.of(
+                context,
+              ).push(MaterialPageRoute(builder: (_) => const PriceCheckPage())),
             ),
             const SizedBox(height: 24),
             Row(
@@ -93,8 +96,7 @@ class HomePage extends ConsumerWidget {
             SizedBox(
               height: 150,
               child: nearbyGuides.when(
-                loading: () =>
-                    const Center(child: CircularProgressIndicator()),
+                loading: () => const Center(child: CircularProgressIndicator()),
                 error: (_, _) => const Center(
                   child: Text(
                     'Could not load guides.',
@@ -131,9 +133,10 @@ class HomePage extends ConsumerWidget {
 }
 
 class _Header extends StatelessWidget {
-  const _Header({required this.name});
+  const _Header({required this.name, required this.unreadNotifications});
 
   final String name;
+  final int unreadNotifications;
 
   @override
   Widget build(BuildContext context) {
@@ -153,8 +156,10 @@ class _Header extends StatelessWidget {
                 SizedBox(width: 2),
                 Text(
                   'Kathmandu, Nepal',
-                  style:
-                      TextStyle(color: AppColors.textSecondary, fontSize: 13),
+                  style: TextStyle(
+                    color: AppColors.textSecondary,
+                    fontSize: 13,
+                  ),
                 ),
               ],
             ),
@@ -164,15 +169,24 @@ class _Header extends StatelessWidget {
         IconButton(
           icon: const Icon(Icons.chat_bubble_outline),
           tooltip: 'Messages',
-          onPressed: () => Navigator.of(context).push(
-            MaterialPageRoute(builder: (_) => const ChatThreadsPage()),
-          ),
+          onPressed: () => Navigator.of(
+            context,
+          ).push(MaterialPageRoute(builder: (_) => const ChatThreadsPage())),
         ),
         IconButton(
-          icon: const Icon(Icons.notifications_none),
-          onPressed: () => Navigator.of(context).push(
-            MaterialPageRoute(builder: (_) => const NotificationsPage()),
+          tooltip: 'Notifications',
+          icon: Badge(
+            isLabelVisible: unreadNotifications > 0,
+            label: Text(
+              unreadNotifications > 99 ? '99+' : '$unreadNotifications',
+            ),
+            child: const Icon(Icons.notifications_none),
           ),
+          onPressed: () async {
+            await Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => const NotificationsPage()),
+            );
+          },
         ),
       ],
     );
@@ -257,8 +271,8 @@ class _QuickActions extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     void open(String type) => Navigator.of(context).push(
-          MaterialPageRoute(builder: (_) => TravelServicesPage(serviceType: type)),
-        );
+      MaterialPageRoute(builder: (_) => TravelServicesPage(serviceType: type)),
+    );
 
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -354,8 +368,10 @@ class _PackagesCta extends StatelessWidget {
                   SizedBox(height: 2),
                   Text(
                     'Book curated treks and tours across Nepal',
-                    style:
-                        TextStyle(color: AppColors.textSecondary, fontSize: 12.5),
+                    style: TextStyle(
+                      color: AppColors.textSecondary,
+                      fontSize: 12.5,
+                    ),
                   ),
                 ],
               ),
@@ -392,12 +408,17 @@ class _PlanTripCta extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Plan your trip',
-                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+                  Text(
+                    'Plan your trip',
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                  ),
                   SizedBox(height: 2),
                   Text(
                     'Build a day-by-day itinerary with a budget tracker',
-                    style: TextStyle(color: AppColors.textSecondary, fontSize: 12.5),
+                    style: TextStyle(
+                      color: AppColors.textSecondary,
+                      fontSize: 12.5,
+                    ),
                   ),
                 ],
               ),
@@ -442,8 +463,10 @@ class _SafetyCta extends StatelessWidget {
                   SizedBox(height: 2),
                   Text(
                     'Check a quoted price and avoid getting overcharged',
-                    style:
-                        TextStyle(color: AppColors.textSecondary, fontSize: 12.5),
+                    style: TextStyle(
+                      color: AppColors.textSecondary,
+                      fontSize: 12.5,
+                    ),
                   ),
                 ],
               ),
@@ -524,7 +547,10 @@ class _RecommendedRoutes extends StatelessWidget {
 }
 
 class _RecommendedRouteCard extends StatelessWidget {
-  const _RecommendedRouteCard({required this.recommendation, required this.onTap});
+  const _RecommendedRouteCard({
+    required this.recommendation,
+    required this.onTap,
+  });
 
   final RecommendedRoute recommendation;
   final VoidCallback onTap;
@@ -585,8 +611,11 @@ class _RecommendedRouteCard extends StatelessWidget {
                   const SizedBox(height: 6),
                   Row(
                     children: [
-                      const Icon(Icons.schedule,
-                          size: 13, color: AppColors.textSecondary),
+                      const Icon(
+                        Icons.schedule,
+                        size: 13,
+                        color: AppColors.textSecondary,
+                      ),
                       const SizedBox(width: 3),
                       Text(
                         route.durationLabel,
@@ -610,8 +639,11 @@ class _RecommendedRouteCard extends StatelessWidget {
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Icon(Icons.info_outline,
-                            size: 11, color: AppColors.textSecondary),
+                        const Icon(
+                          Icons.info_outline,
+                          size: 11,
+                          color: AppColors.textSecondary,
+                        ),
                         const SizedBox(width: 3),
                         Expanded(
                           child: Text(
@@ -669,12 +701,19 @@ class _NearbyGuideCard extends StatelessWidget {
                       colors: [AppColors.primary, AppColors.primaryDark],
                     ),
                   ),
-                  child: const Icon(Icons.person, color: Colors.white, size: 22),
+                  child: const Icon(
+                    Icons.person,
+                    color: Colors.white,
+                    size: 22,
+                  ),
                 ),
                 const Spacer(),
                 if (guide.isVerified)
-                  const Icon(Icons.verified,
-                      size: 16, color: AppColors.primary),
+                  const Icon(
+                    Icons.verified,
+                    size: 16,
+                    color: AppColors.primary,
+                  ),
               ],
             ),
             const SizedBox(height: 8),

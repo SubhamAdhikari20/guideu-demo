@@ -6,11 +6,30 @@ import '../../../../app/theme/app_colors.dart';
 import '../../../../core/api/api_endpoints.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 
-final notificationsProvider = FutureProvider.autoDispose<List<Map<String, dynamic>>>((ref) async {
-  final response = await ref.watch(apiClientProvider).dio.get(ApiEndpoints.notifications);
-  final data = response.data;
-  final rows = data is Map ? data['results'] as List? ?? const [] : data as List? ?? const [];
-  return rows.cast<Map>().map((row) => Map<String, dynamic>.from(row)).toList();
+final notificationsProvider =
+    FutureProvider.autoDispose<List<Map<String, dynamic>>>((ref) async {
+      final response = await ref
+          .watch(apiClientProvider)
+          .dio
+          .get(ApiEndpoints.notifications);
+      final data = response.data;
+      final rows = data is Map
+          ? data['results'] as List? ?? const []
+          : data as List? ?? const [];
+      return rows
+          .cast<Map>()
+          .map((row) => Map<String, dynamic>.from(row))
+          .toList();
+    });
+
+final notificationUnreadCountProvider = FutureProvider.autoDispose<int>((
+  ref,
+) async {
+  final response = await ref
+      .watch(apiClientProvider)
+      .dio
+      .get('${ApiEndpoints.notifications}unread_count/');
+  return (response.data as Map)['unread'] as int? ?? 0;
 });
 
 class NotificationsPage extends ConsumerWidget {
@@ -25,8 +44,12 @@ class NotificationsPage extends ConsumerWidget {
         actions: [
           TextButton(
             onPressed: () async {
-              await ref.read(apiClientProvider).dio.post('${ApiEndpoints.notifications}read_all/');
+              await ref
+                  .read(apiClientProvider)
+                  .dio
+                  .post('${ApiEndpoints.notifications}read_all/');
               ref.invalidate(notificationsProvider);
+              ref.invalidate(notificationUnreadCountProvider);
             },
             child: const Text('Read all'),
           ),
@@ -36,17 +59,27 @@ class NotificationsPage extends ConsumerWidget {
         onRefresh: () => ref.refresh(notificationsProvider.future),
         child: notifications.when(
           loading: () => const Center(child: CircularProgressIndicator()),
-          error: (_, _) => ListView(children: const [
-            SizedBox(height: 120),
-            Center(child: Text('Could not load notifications. Pull to retry.')),
-          ]),
+          error: (_, _) => ListView(
+            children: const [
+              SizedBox(height: 120),
+              Center(
+                child: Text('Could not load notifications. Pull to retry.'),
+              ),
+            ],
+          ),
           data: (items) => items.isEmpty
-              ? ListView(children: const [
-                  SizedBox(height: 120),
-                  Icon(Icons.notifications_none, size: 48, color: AppColors.textSecondary),
-                  SizedBox(height: 12),
-                  Center(child: Text('You are all caught up.')),
-                ])
+              ? ListView(
+                  children: const [
+                    SizedBox(height: 120),
+                    Icon(
+                      Icons.notifications_none,
+                      size: 48,
+                      color: AppColors.textSecondary,
+                    ),
+                    SizedBox(height: 12),
+                    Center(child: Text('You are all caught up.')),
+                  ],
+                )
               : ListView.separated(
                   padding: const EdgeInsets.all(16),
                   itemCount: items.length,
@@ -59,26 +92,41 @@ class NotificationsPage extends ConsumerWidget {
                           : AppColors.primary.withValues(alpha: .06),
                       child: ListTile(
                         leading: CircleAvatar(
-                          backgroundColor: AppColors.primary.withValues(alpha: .12),
-                          child: Icon(_iconFor(item['kind'] as String?), color: AppColors.primary),
+                          backgroundColor: AppColors.primary.withValues(
+                            alpha: .12,
+                          ),
+                          child: Icon(
+                            _iconFor(item['kind'] as String?),
+                            color: AppColors.primary,
+                          ),
                         ),
-                        title: Text(item['title'] as String? ?? 'GuideU update'),
+                        title: Text(
+                          item['title'] as String? ?? 'GuideU update',
+                        ),
                         subtitle: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            if ((item['body'] as String? ?? '').isNotEmpty) Text(item['body'] as String),
+                            if ((item['body'] as String? ?? '').isNotEmpty)
+                              Text(item['body'] as String),
                             const SizedBox(height: 4),
-                            Text(_formatDate(item['created_at'] as String?), style: const TextStyle(fontSize: 11)),
+                            Text(
+                              _formatDate(item['created_at'] as String?),
+                              style: const TextStyle(fontSize: 11),
+                            ),
                           ],
                         ),
                         isThreeLine: true,
                         onTap: item['is_read'] == true
                             ? null
                             : () async {
-                                await ref.read(apiClientProvider).dio.post(
-                                  '${ApiEndpoints.notifications}${item['id']}/read/',
-                                );
+                                await ref
+                                    .read(apiClientProvider)
+                                    .dio
+                                    .post(
+                                      '${ApiEndpoints.notifications}${item['id']}/read/',
+                                    );
                                 ref.invalidate(notificationsProvider);
+                                ref.invalidate(notificationUnreadCountProvider);
                               },
                       ),
                     );
@@ -90,11 +138,11 @@ class NotificationsPage extends ConsumerWidget {
   }
 
   static IconData _iconFor(String? kind) => switch (kind) {
-        'PAYMENT' => Icons.account_balance_wallet_outlined,
-        'SCAM' || 'SYSTEM' => Icons.shield_outlined,
-        'REVIEW' => Icons.star_outline,
-        _ => Icons.calendar_month_outlined,
-      };
+    'PAYMENT' => Icons.account_balance_wallet_outlined,
+    'SCAM' || 'SYSTEM' => Icons.shield_outlined,
+    'REVIEW' => Icons.star_outline,
+    _ => Icons.calendar_month_outlined,
+  };
 
   static String _formatDate(String? value) {
     final date = DateTime.tryParse(value ?? '')?.toLocal();
