@@ -120,7 +120,29 @@ def create_payment(token: str, target: dict[str, int], gateway: str, expected_am
     _, payment = json_request("payments/payments/", method="POST", token=token, payload=malicious, expected=(201,))
     require(payment["amount"] == expected_amount, "Payment amount is computed by the server", payment["amount"])
     require(payment["currency"] == "NPR" and payment["status"] == "PENDING", "Payment lifecycle starts safely")
-    require(payment["mode"] == "demo" and bool(payment["gateway_reference"]), "Local payment gateway demo initialized", gateway)
+    # The server decides the mode from PAYMENT_MODE, so assert what that mode
+    # actually promises rather than assuming the demo path. In demo mode there
+    # is no gateway call at all and the trip is completed with demo-confirm. In
+    # sandbox/live the server must hand back somewhere to send the payer: a
+    # checkout URL for Khalti, or the signed form payload for eSewa.
+    mode = payment["mode"]
+    require(mode in {"demo", "sandbox", "live"}, "Payment mode is recognised", mode)
+    require(bool(payment["gateway_reference"]), "Gateway reference is issued by the server", mode)
+    if mode == "demo":
+        require(not payment.get("checkout_url"), f"Demo payment stays local ({gateway})", mode)
+    else:
+        has_target = bool(payment.get("checkout_url")) or bool(payment.get("checkout_payload"))
+        require(has_target, f"Sandbox checkout target returned ({gateway})", payment.get("checkout_url", ""))
+    if mode != "demo":
+        # A sandbox payment is only completed by the gateway calling our
+        # callback after a human finishes the form in a browser. There is no
+        # honest way to finish it from a headless script, so stop here rather
+        # than forcing the server into demo mode just to get a green tick.
+        report(
+            f"Sandbox payment left pending for the gateway ({gateway})",
+            "run with PAYMENT_MODE=demo to exercise the full confirm and receipt path",
+        )
+        return payment
     _, confirmed = json_request(
         f"payments/payments/{payment['id']}/confirm/", method="POST", token=token, payload={}
     )
