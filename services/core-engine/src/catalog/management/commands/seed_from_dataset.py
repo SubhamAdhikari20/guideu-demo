@@ -427,6 +427,65 @@ class Command(BaseCommand):
                 "departure_at": now + dt.timedelta(days=2, hours=2), "arrival_at": now + dt.timedelta(days=2, hours=8),
                 "unit_price": 1450, "capacity": 40,
             },
+            # Wider inventory so each tab looks like a real listing rather than
+            # two rows, and so the search and filter controls have something to
+            # actually narrow down.
+            {
+                "service_type": "HOTEL", "provider_name": "Sherpa Hospitality",
+                "title": "Namche Bazaar Lodge", "location": "Solukhumbu",
+                "unit_price": 3600, "capacity": 12, "amenities": ["Heating", "Hot shower", "Drying room"],
+            },
+            {
+                "service_type": "HOTEL", "provider_name": "Annapurna Rooms",
+                "title": "Ghandruk Stone House", "location": "Kaski",
+                "unit_price": 2900, "capacity": 10, "amenities": ["Mountain view", "Breakfast"],
+            },
+            {
+                "service_type": "HOTEL", "provider_name": "Chitwan Jungle Resorts",
+                "title": "Sauraha Riverside Resort", "location": "Chitwan",
+                "unit_price": 5400, "capacity": 20, "amenities": ["Safari desk", "Breakfast", "Pool"],
+            },
+            {
+                "service_type": "HOTEL", "provider_name": "Lumbini Garden Stays",
+                "title": "Lumbini Peace Garden Hotel", "location": "Rupandehi",
+                "unit_price": 3300, "capacity": 16, "amenities": ["Garden", "Breakfast", "Bicycle hire"],
+            },
+            {
+                "service_type": "FLIGHT", "provider_name": "Tara Air Demo",
+                "title": "Pokhara to Jomsom Early", "origin": "Pokhara", "destination": "Jomsom",
+                "departure_at": now + dt.timedelta(days=5, hours=1), "arrival_at": now + dt.timedelta(days=5, hours=2),
+                "unit_price": 12500, "capacity": 18,
+            },
+            {
+                "service_type": "FLIGHT", "provider_name": "Summit Air Demo",
+                "title": "Kathmandu to Lukla", "origin": "Kathmandu", "destination": "Lukla",
+                "departure_at": now + dt.timedelta(days=6, hours=1), "arrival_at": now + dt.timedelta(days=6, hours=2),
+                "unit_price": 21500, "capacity": 16,
+            },
+            {
+                "service_type": "FLIGHT", "provider_name": "Shree Airlines Demo",
+                "title": "Kathmandu to Biratnagar", "origin": "Kathmandu", "destination": "Biratnagar",
+                "departure_at": now + dt.timedelta(days=4, hours=7), "arrival_at": now + dt.timedelta(days=4, hours=8),
+                "unit_price": 8400, "capacity": 66,
+            },
+            {
+                "service_type": "BUS", "provider_name": "Mountain Overland Demo",
+                "title": "Pokhara to Kathmandu Night Coach", "origin": "Pokhara", "destination": "Kathmandu",
+                "departure_at": now + dt.timedelta(days=3, hours=13), "arrival_at": now + dt.timedelta(days=3, hours=21),
+                "unit_price": 1600, "capacity": 34,
+            },
+            {
+                "service_type": "BUS", "provider_name": "Sajha Yatayat Demo",
+                "title": "Kathmandu to Lumbini", "origin": "Kathmandu", "destination": "Lumbini",
+                "departure_at": now + dt.timedelta(days=5, hours=2), "arrival_at": now + dt.timedelta(days=5, hours=11),
+                "unit_price": 1750, "capacity": 42,
+            },
+            {
+                "service_type": "BUS", "provider_name": "Baba Adventure Demo",
+                "title": "Kathmandu to Besisahar", "origin": "Kathmandu", "destination": "Lamjung",
+                "departure_at": now + dt.timedelta(days=2, hours=5), "arrival_at": now + dt.timedelta(days=2, hours=11),
+                "unit_price": 950, "capacity": 30,
+            },
         ]
         for row in rows:
             capacity = row["capacity"]
