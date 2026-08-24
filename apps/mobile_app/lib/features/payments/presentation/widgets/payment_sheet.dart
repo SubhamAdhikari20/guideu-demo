@@ -5,6 +5,7 @@ import '../../../../app/theme/app_colors.dart';
 import '../../domain/entities/payment.dart';
 import '../../domain/usecases/pay_for_booking_usecase.dart';
 import '../providers/payment_providers.dart';
+import '../pages/local_sandbox_checkout_page.dart';
 import '../pages/sandbox_checkout_page.dart';
 
 /// Opens the payment sheet for a booking. Returns `true` when payment succeeds.
@@ -21,11 +22,8 @@ Future<bool?> showPaymentSheet(
     shape: const RoundedRectangleBorder(
       borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
     ),
-    builder: (context) => _PaymentSheet(
-      bookingId: bookingId,
-      amount: amount,
-      title: title,
-    ),
+    builder: (context) =>
+        _PaymentSheet(bookingId: bookingId, amount: amount, title: title),
   );
 }
 
@@ -50,7 +48,9 @@ class _PaymentSheetState extends ConsumerState<_PaymentSheet> {
 
   Future<void> _pay() async {
     setState(() => _processing = true);
-    final (failure, payment) = await ref.read(payForBookingUseCaseProvider).call(
+    final (failure, payment) = await ref
+        .read(payForBookingUseCaseProvider)
+        .call(
           PayForBookingParams(
             bookingId: widget.bookingId,
             amount: widget.amount,
@@ -59,21 +59,39 @@ class _PaymentSheetState extends ConsumerState<_PaymentSheet> {
         );
     if (!mounted) return;
     setState(() => _processing = false);
-    if (payment != null && payment.isSuccess) {
-      Navigator.of(context).pop(true);
-    } else if (payment != null && payment.requiresProviderCheckout) {
+    if (payment != null) {
+      final isLocalDemo = payment.mode == 'demo';
+      if (!isLocalDemo && !payment.requiresProviderCheckout) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'The payment provider did not return a checkout page.',
+            ),
+          ),
+        );
+        return;
+      }
       final returned = await Navigator.of(context).push<bool>(
-        MaterialPageRoute(builder: (_) => SandboxCheckoutPage(payment: payment)),
+        MaterialPageRoute(
+          builder: (_) => isLocalDemo
+              ? LocalSandboxCheckoutPage(payment: payment)
+              : SandboxCheckoutPage(payment: payment),
+        ),
       );
       if (!mounted || returned != true) return;
-      final (verifyFailure, verified) =
-          await ref.read(paymentRepositoryProvider).verify(payment.id);
+      final (verifyFailure, verified) = isLocalDemo
+          ? await ref.read(paymentRepositoryProvider).confirm(payment.id)
+          : await ref.read(paymentRepositoryProvider).verify(payment.id);
       if (!mounted) return;
       if (verified?.isSuccess == true) {
         Navigator.of(context).pop(true);
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(verifyFailure?.message ?? 'Payment is still pending.')),
+          SnackBar(
+            content: Text(
+              verifyFailure?.message ?? 'Payment is still pending.',
+            ),
+          ),
         );
       }
     } else {
@@ -105,15 +123,20 @@ class _PaymentSheetState extends ConsumerState<_PaymentSheet> {
             ],
           ),
           const SizedBox(height: 4),
-          Text(widget.title, style: const TextStyle(fontWeight: FontWeight.w600)),
+          Text(
+            widget.title,
+            style: const TextStyle(fontWeight: FontWeight.w600),
+          ),
           const SizedBox(height: 2),
           Text(
             'Amount: Rs. ${widget.amount.toStringAsFixed(0)}',
             style: const TextStyle(color: AppColors.textSecondary),
           ),
           const SizedBox(height: 16),
-          const Text('Choose a payment method',
-              style: TextStyle(fontWeight: FontWeight.w600)),
+          const Text(
+            'Choose a payment method',
+            style: TextStyle(fontWeight: FontWeight.w600),
+          ),
           const SizedBox(height: 8),
           for (final g in PaymentGateway.values)
             _GatewayTile(
@@ -171,7 +194,9 @@ class _GatewayTile extends StatelessWidget {
         margin: const EdgeInsets.only(bottom: 8),
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color: selected ? AppColors.primary.withValues(alpha: 0.08) : AppColors.inputFill,
+          color: selected
+              ? AppColors.primary.withValues(alpha: 0.08)
+              : AppColors.inputFill,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
             color: selected ? AppColors.primary : AppColors.border,
@@ -191,7 +216,11 @@ class _GatewayTile extends StatelessWidget {
             ),
             const Spacer(),
             if (selected)
-              const Icon(Icons.check_circle, color: AppColors.primary, size: 20),
+              const Icon(
+                Icons.check_circle,
+                color: AppColors.primary,
+                size: 20,
+              ),
           ],
         ),
       ),

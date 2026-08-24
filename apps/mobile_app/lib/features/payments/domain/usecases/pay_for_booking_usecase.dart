@@ -15,8 +15,8 @@ class PayForBookingParams {
   final PaymentGateway gateway;
 }
 
-/// Creates a server-priced payment. Local demo mode confirms immediately;
-/// sandbox/live mode returns the provider checkout for the presentation layer.
+/// Creates a server-priced payment. The presentation layer completes either
+/// the safe local sandbox or the provider-hosted sandbox checkout.
 class PayForBookingUseCase implements UseCase<Payment, PayForBookingParams> {
   const PayForBookingUseCase(this._repository);
 
@@ -32,7 +32,6 @@ class PayForBookingUseCase implements UseCase<Payment, PayForBookingParams> {
     if (initFailure != null || payment == null) {
       return (initFailure, null);
     }
-    if (payment.mode == 'demo') return _repository.confirm(payment.id);
     return (null, payment);
   }
 }
