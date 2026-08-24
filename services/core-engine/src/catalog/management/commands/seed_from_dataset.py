@@ -155,6 +155,10 @@ class Command(BaseCommand):
         self._seed_pricing(dataset_dir / "pricing_benchmarks.csv", region_cache, options["max_pricing"])
         self._seed_badges()
 
+        # Tour packages come straight from the trekking routes, so the catalogue
+        # a traveller browses is the same data the models were trained on.
+        self._seed_tour_packages()
+
         # Before bookings: the demo guide has to exist to be assignable.
         if options["with_demo_accounts"]:
             self._seed_demo_accounts()
@@ -495,6 +499,60 @@ class Command(BaseCommand):
                 defaults.pop(key, None)
             TravelOffering.objects.update_or_create(defaults=defaults, **lookup)
         self.stdout.write(self.style.SUCCESS(f"Demo travel inventory: {len(rows)} offerings"))
+
+    def _seed_tour_packages(self) -> None:
+        """Build bookable tour packages from the real trekking routes.
+
+        The dataset repeats each trek under many packaging variants ("Everest
+        Base Camp (Budget)", "(Express)" and so on), so grouping by the base
+        trek name is what turns 2,000 rows into a catalogue a person can read.
+        Pricing comes from the route's own estimated cost rather than a made-up
+        number, which keeps the package list consistent with the ML features.
+        """
+        from src.bookings.models import TourPackage
+
+        USD_TO_NPR = 133  # rounded mid-market rate, only used for demo pricing
+
+        # Group variants under the base trek name, keeping the longest itinerary
+        # as the representative row for each trek.
+        by_trek: dict[str, TrekkingRoute] = {}
+        for route in TrekkingRoute.objects.select_related("region").filter(is_published=True):
+            base = route.route_name.split("(")[0].strip()
+            if not base:
+                continue
+            current = by_trek.get(base)
+            if current is None or route.duration_days > current.duration_days:
+                by_trek[base] = route
+
+        created = 0
+        for base_name, route in sorted(by_trek.items()):
+            price_npr = (route.estimated_cost_usd or 0) * USD_TO_NPR
+            if price_npr <= 0:
+                # No costed route means no honest price, so skip rather than invent one.
+                continue
+            permits = route.permits_required or "No special permit recorded"
+            description = (
+                f"{route.duration_days} day guided trek in {route.region.name}. "
+                f"Difficulty {route.get_difficulty_display()}, maximum altitude "
+                f"{route.max_altitude_m} m. Best season: {route.best_seasons or 'year round'}. "
+                f"Permits: {permits}."
+            )
+            _, was_created = TourPackage.objects.update_or_create(
+                title=base_name,
+                defaults={
+                    "description": description,
+                    "base_price": price_npr,
+                    "duration_days": max(route.duration_days, 1),
+                    "capacity": 12,
+                    "is_active": True,
+                },
+            )
+            created += int(was_created)
+
+        total = TourPackage.objects.count()
+        self.stdout.write(self.style.SUCCESS(
+            f"Tour packages: {total} total ({created} new) from {len(by_trek)} distinct treks"
+        ))
 
     def _seed_demo_bookings(self) -> None:
         """Create a small, explorable booking slice (demo users + bookings)."""
