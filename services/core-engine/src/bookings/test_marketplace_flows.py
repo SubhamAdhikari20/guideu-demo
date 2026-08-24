@@ -109,3 +109,39 @@ def test_itinerary_is_not_visible_or_editable_across_users():
     client = APIClient(); client.force_authenticate(stranger)
     assert client.get(f'/api/v1/bookings/itinerary-items/{item.id}/').status_code == 404
     assert client.patch(f'/api/v1/bookings/itinerary-items/{item.id}/', {'title': 'Stolen'}).status_code == 404
+
+
+@pytest.mark.django_db
+def test_travel_offering_service_type_filter_is_applied():
+    """Guards a real defect: ``TravelOfferingViewSet`` declared ``filter_backends``
+    without ``DjangoFilterBackend``, which silently disabled ``filterset_fields``.
+    Every service_type query returned the whole inventory, so the hotel tab
+    listed buses and flights. Only a request-level assertion catches this,
+    because the attributes themselves still look correct on the class."""
+    # Buses and flights carry a route, hotels carry a location. The model
+    # enforces that split, so the fixtures have to respect it.
+    for service_type, provider in (
+        (TravelOffering.ServiceType.HOTEL, 'Hotel Everest View'),
+        (TravelOffering.ServiceType.BUS, 'Greenline Bus'),
+        (TravelOffering.ServiceType.FLIGHT, 'Buddha Air'),
+    ):
+        route = {} if service_type == TravelOffering.ServiceType.HOTEL else {
+            'origin': 'Kathmandu', 'destination': 'Pokhara',
+            'departure_at': timezone.now() + timedelta(days=3),
+        }
+        TravelOffering.objects.create(
+            service_type=service_type, provider_name=provider,
+            title=f'{provider} demo listing',
+            location='Kathmandu' if service_type == TravelOffering.ServiceType.HOTEL else '',
+            unit_price=Decimal('4200.00'), capacity=8, available_units=8, **route,
+        )
+
+    client = APIClient()
+    client.force_authenticate(user('filter_probe'))
+
+    for service_type in ('HOTEL', 'BUS', 'FLIGHT'):
+        response = client.get('/api/v1/bookings/travel-offerings/', {'service_type': service_type})
+        assert response.status_code == 200
+        rows = response.data['results'] if 'results' in response.data else response.data
+        assert rows, f'no {service_type} rows returned'
+        assert {row['service_type'] for row in rows} == {service_type}

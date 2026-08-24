@@ -6,6 +6,7 @@ from decimal import Decimal
 from django.db import transaction
 from django.db.models import Q
 from django.db.models import Count, Sum
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, permissions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.exceptions import PermissionDenied, ValidationError
@@ -30,7 +31,7 @@ from .serializers import (
 class TourPackageViewSet(viewsets.ModelViewSet):
     queryset = TourPackage.objects.filter(is_active=True).order_by('-created_at')
     serializer_class = TourPackageSerializer
-    filter_backends = (filters.SearchFilter, filters.OrderingFilter)
+    filter_backends = (DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter)
     search_fields = ('title', 'description')
     ordering_fields = ('base_price', 'duration_days')
 
@@ -44,7 +45,7 @@ class BookingSessionViewSet(viewsets.ModelViewSet):
     queryset = BookingSession.objects.all().order_by('-created_at')
     serializer_class = BookingSessionSerializer
     permission_classes = (permissions.IsAuthenticated,)
-    filter_backends = (filters.SearchFilter, filters.OrderingFilter)
+    filter_backends = (DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter)
     search_fields = ('booking_reference', 'tourist__username', 'assigned_guide__username')
     ordering_fields = ('start_date', 'end_date', 'status')
 
@@ -305,7 +306,10 @@ class GuideRequestViewSet(viewsets.ModelViewSet):
 class TravelOfferingViewSet(viewsets.ModelViewSet):
     queryset = TravelOffering.objects.all()
     serializer_class = TravelOfferingSerializer
-    filter_backends = (filters.SearchFilter, filters.OrderingFilter)
+    # DjangoFilterBackend must stay in this tuple. Declaring ``filter_backends``
+    # here replaces the project default, and dropping it silently disabled every
+    # ``filterset_fields`` entry below, so ?service_type=HOTEL returned buses too.
+    filter_backends = (DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter)
     filterset_fields = ('service_type', 'location', 'origin', 'destination', 'is_active')
     search_fields = ('provider_name', 'title', 'location', 'origin', 'destination')
     ordering_fields = ('unit_price', 'departure_at')
