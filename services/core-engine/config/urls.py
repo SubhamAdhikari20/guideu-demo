@@ -35,6 +35,7 @@ api_patterns = [
 urlpatterns = [
     path("", views.service_index, name="service-index"),
     path("healthz/", views.healthz, name="healthz"),
+    path("readyz/", views.readyz, name="readyz"),
     path("admin/", admin.site.urls),
     # OpenAPI
     path("api/schema/", SpectacularAPIView.as_view(), name="schema"),
